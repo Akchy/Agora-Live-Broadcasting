@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:agora_flutter_quickstart/src/pages/join.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import './call.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class IndexPage extends StatefulWidget {
   @override
@@ -12,7 +15,9 @@ class IndexPage extends StatefulWidget {
 class IndexState extends State<IndexPage> {
   /// create a channelController to retrieve text value
   final _channelController = TextEditingController();
+  int channel;
 
+  final databaseReference = Firestore.instance;
   /// if channel textField is validated to have error
   bool _validateError = false;
 
@@ -57,6 +62,21 @@ class IndexState extends State<IndexPage> {
                   children: <Widget>[
                     Expanded(
                       child: RaisedButton(
+                        onPressed: onCreate,
+                        child: Text('Create'),
+                        color: Colors.blueAccent,
+                        textColor: Colors.white,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: RaisedButton(
                         onPressed: onJoin,
                         child: Text('Join'),
                         color: Colors.blueAccent,
@@ -81,6 +101,48 @@ class IndexState extends State<IndexPage> {
           : _validateError = false;
     });
     if (_channelController.text.isNotEmpty) {
+
+      await getChannel();
+      // await for camera and mic permissions before pushing video page
+      await _handleCameraAndMic();
+      // push video page with given channel name
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => JoinPage(
+            channelName: _channelController.text,
+            channelId: channel,
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> getChannel() async{
+    await databaseReference
+        .collection('liveuser')
+        .getDocuments()
+        .then((QuerySnapshot snapshot) {
+      snapshot.documents.forEach((f) {
+        print('${f.data}');
+        var v = f.data;
+        if(v['name'] == _channelController.text) {
+          channel = int.parse(f.data['channel'].toString());
+          print('Xperion $channel');
+        }
+      });
+    });
+  }
+
+  Future<void> onCreate() async {
+    // update input validation
+    setState(() {
+      _channelController.text.isEmpty
+          ? _validateError = true
+          : _validateError = false;
+    });
+    if (_channelController.text.isNotEmpty) {
       // await for camera and mic permissions before pushing video page
       await _handleCameraAndMic();
       // push video page with given channel name
@@ -94,6 +156,7 @@ class IndexState extends State<IndexPage> {
       );
     }
   }
+
 
   Future<void> _handleCameraAndMic() async {
     await PermissionHandler().requestPermissions(

@@ -1,29 +1,32 @@
 import 'dart:async';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../utils/settings.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wakelock/wakelock.dart';
 
-class CallPage extends StatefulWidget {
+
+class JoinPage extends StatefulWidget {
   /// non-modifiable channel name of the page
   final String channelName;
+  final int channelId;
+
+
 
   /// Creates a call page with given channel name.
-  const CallPage({Key key, this.channelName}) : super(key: key);
+  const JoinPage({Key key, this.channelName, this.channelId}) : super(key: key);
+
 
   @override
-  _CallPageState createState() => _CallPageState();
+  _JoinPageState createState() => _JoinPageState();
 }
 
-class _CallPageState extends State<CallPage> {
+class _JoinPageState extends State<JoinPage> {
   static final _users = <int>[];
+  static final user = <int>[];
   final _infoStrings = <String>[];
+  bool muted = true;
 
-  final databaseReference = Firestore.instance;
-
-  final Firestore _db = Firestore.instance;
-  bool muted = false;
 
   @override
   void dispose() {
@@ -65,6 +68,9 @@ class _CallPageState extends State<CallPage> {
   Future<void> _initAgoraRtcEngine() async {
     await AgoraRtcEngine.create(APP_ID);
     await AgoraRtcEngine.enableVideo();
+    await AgoraRtcEngine.muteLocalAudioStream(muted);
+    await AgoraRtcEngine.enableLocalVideo(!muted);
+
   }
 
   /// Add agora event handlers
@@ -80,24 +86,7 @@ class _CallPageState extends State<CallPage> {
       String channel,
       int uid,
       int elapsed,
-    ) async{
-      print('Xperion $uid');
-
-      final collection = 'liveuser';
-      final documentId = widget.channelName;
-      final snapShot = await _db.collection(collection).document(documentId).get();
-      if(snapShot.exists){
-        await _db.collection(collection).document(documentId).updateData({
-          'name': widget.channelName,
-          'channel': uid
-        });
-      } else {
-        await _db.collection(collection).document(documentId).setData({
-          'name': widget.channelName,
-          'channel': uid
-        });
-      }
-
+    ) {
       Wakelock.enable();
       setState(() {
         final info = 'onJoinChannel: $channel, uid: $uid';
@@ -109,7 +98,6 @@ class _CallPageState extends State<CallPage> {
       setState(() {
         _infoStrings.add('onLeaveChannel');
         _users.clear();
-        _db.collection('liveuser').document(widget.channelName).delete();
       });
     };
 
@@ -144,10 +132,19 @@ class _CallPageState extends State<CallPage> {
 
   /// Helper function to get list of native views
   List<Widget> _getRenderViews() {
-    final List<AgoraRenderWidget> list = [
-      AgoraRenderWidget(0, local: true, preview: true),
-    ];
-    _users.forEach((int uid) => list.add(AgoraRenderWidget(uid)));
+    final List<AgoraRenderWidget> list = [];
+    //user.add(widget.channelId);
+
+    _users.forEach((int channelId) {
+
+      if(channelId == widget.channelId) {
+
+        list.add(AgoraRenderWidget(channelId));
+
+      }
+    });
+
+
     return list;
   }
 
@@ -173,7 +170,6 @@ class _CallPageState extends State<CallPage> {
         child: Column(
           children: <Widget>[_videoView(views[0])],
         ));
-
     /*switch (views.length) {
       case 1:
         return Container(
@@ -218,18 +214,6 @@ class _CallPageState extends State<CallPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           RawMaterialButton(
-            onPressed: _onToggleMute,
-            child: Icon(
-              muted ? Icons.mic_off : Icons.mic,
-              color: muted ? Colors.white : Colors.blueAccent,
-              size: 20.0,
-            ),
-            shape: CircleBorder(),
-            elevation: 2.0,
-            fillColor: muted ? Colors.blueAccent : Colors.white,
-            padding: const EdgeInsets.all(12.0),
-          ),
-          RawMaterialButton(
             onPressed: () => _onCallEnd(context),
             child: Icon(
               Icons.call_end,
@@ -241,18 +225,6 @@ class _CallPageState extends State<CallPage> {
             fillColor: Colors.redAccent,
             padding: const EdgeInsets.all(15.0),
           ),
-          RawMaterialButton(
-            onPressed: _onSwitchCamera,
-            child: Icon(
-              Icons.switch_camera,
-              color: Colors.blueAccent,
-              size: 20.0,
-            ),
-            shape: CircleBorder(),
-            elevation: 2.0,
-            fillColor: Colors.white,
-            padding: const EdgeInsets.all(12.0),
-          )
         ],
       ),
     );
@@ -308,45 +280,11 @@ class _CallPageState extends State<CallPage> {
     );
   }
 
-  void _showDialog() {
-    // flutter defined function
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // return object of type Dialog
-        return AlertDialog(
-          title: Text('Alert Dialog title'),
-          content: Text('Alert Dialog body'),
-          actions: <Widget>[
-            // usually buttons at the bottom of the dialog
-            FlatButton(
-              child: Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _onCallEnd(BuildContext context) async {
-    await _showDialog();
-    await Wakelock.enable();
+  void _onCallEnd(BuildContext context) {
+    Wakelock.disable();
     Navigator.pop(context);
   }
 
-  void _onToggleMute() {
-    setState(() {
-      muted = !muted;
-    });
-    AgoraRtcEngine.muteLocalAudioStream(muted);
-  }
-
-  void _onSwitchCamera() {
-    AgoraRtcEngine.switchCamera();
-  }
 
   @override
   Widget build(BuildContext context) {
