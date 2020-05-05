@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import './screen/Login.dart';
+  import 'package:flutter/material.dart';
+  import './screen/Login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import './HomeScreen.dart';
 import './screen/splash.dart';
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Replica',
+      title: 'Kristie',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -29,9 +29,9 @@ class MainScreen extends StatelessWidget {
       stream: FirebaseAuth.instance.onAuthStateChanged,
       builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting)
-          return SplashPage();
+          {return SplashPage();}
         if (!snapshot.hasData || snapshot.data == null)
-          return Login();
+          {return Login();}
         return HomeScreen();
       },
     );

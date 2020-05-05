@@ -1,7 +1,5 @@
+import 'package:agora_flutter_quickstart/firebaseDB/auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import './Login.dart';
-import '../auth.dart';
 
 class Registration extends StatelessWidget{
   final _emailController = TextEditingController();
@@ -38,7 +36,7 @@ class Registration extends StatelessWidget{
                         ),
                         filled: true,
                         fillColor: Colors.grey[100],
-                        hintText: "Email ID",
+                        hintText: 'Email ID',
 
 
                     ),
@@ -60,9 +58,7 @@ class Registration extends StatelessWidget{
                       ),
                       filled: true,
                       fillColor: Colors.grey[100],
-                      hintText: "Password",
-
-
+                      hintText: 'Password',
                     ),
                     controller: _passController,
                     obscureText: true,
@@ -84,7 +80,7 @@ class Registration extends StatelessWidget{
                       ),
                       filled: true,
                       fillColor: Colors.grey[100],
-                      hintText: "Full Name",
+                      hintText: 'Full Name',
 
 
                     ),
@@ -106,13 +102,22 @@ class Registration extends StatelessWidget{
                       ),
                       filled: true,
                       fillColor: Colors.grey[100],
-                      hintText: "Image",
-
-
+                      hintText: 'Username',
                     ),
                     controller: _imageController,
                     //textCapitalization: TextCapitalization.words,
                   ),
+                  SizedBox(height: 6,),
+
+                  Text('*The username should be unique',
+                    style: TextStyle(
+                      color: Colors.grey[850],
+                      letterSpacing: 1.0,
+                      fontSize: 10.0
+                    ),
+                    //textCapitalization: TextCapitalization.words,
+                  ),
+
 
                   SizedBox(height: 16,),
 
@@ -120,7 +125,7 @@ class Registration extends StatelessWidget{
                   Container(
                     width: double.infinity,
                     child: FlatButton(
-                      child: Text("Register"),
+                      child: Text('Register'),
                       textColor: Colors.white,
                       padding: EdgeInsets.all(16),
                       onPressed: () async{
@@ -130,23 +135,15 @@ class Registration extends StatelessWidget{
                         final name = _nameController.text.toString().trim();
                         final url = _imageController.text.toString().trim();
 
-                       bool result = await registerUser(email, pass, name, url);
+                       var result = await registerUser(email, pass, name, url);
                        if(result){
                          Navigator.pop(context);
 
                        }
                        else{
-                         print("Error");
+                         print('Error');
                        }
-                        Fluttertoast.showToast(
-                            msg: "Your email is $email and password is $pass",
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
-                            timeInSecForIosWeb: 1,
-                            backgroundColor: Colors.black,
-                            textColor: Colors.lightGreen,
-                            fontSize: 16.0
-                        );
+
                       },
                       color: Colors.blue,
                     ),
@@ -156,23 +153,13 @@ class Registration extends StatelessWidget{
                   Container(
                     width: double.infinity,
                     child: FlatButton(
-                      child: Text("Login Here"),
+                      child: Text('Login Here'),
                       textColor: Colors.white,
                       padding: EdgeInsets.all(16),
                       onPressed: () {
-                        Fluttertoast.showToast(
-                            msg: "Wait a min!!! ",
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
-                            timeInSecForIosWeb: 1,
-                            backgroundColor: Colors.black,
-                            textColor: Colors.lightGreen,
-                            fontSize: 16.0
-                        );
-
                         Navigator.pop(context);
                       },
-                      color: Colors.blue,
+                      color: Colors.green[400],
                     ),
                   )
                 ],

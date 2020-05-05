@@ -1,8 +1,7 @@
+import 'package:agora_flutter_quickstart/firebaseDB/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../HomeScreen.dart';
-import '../auth.dart';
 import './Registration.dart';
 
 class Login extends StatelessWidget{
@@ -39,7 +38,7 @@ class Login extends StatelessWidget{
                         ),
                         filled: true,
                         fillColor: Colors.grey[100],
-                        hintText: "Email ID",
+                        hintText: 'Email ID',
 
 
                     ),
@@ -61,7 +60,7 @@ class Login extends StatelessWidget{
                       ),
                       filled: true,
                       fillColor: Colors.grey[100],
-                      hintText: "Password",
+                      hintText: 'Password',
 
 
                     ),
@@ -76,18 +75,18 @@ class Login extends StatelessWidget{
                   Container(
                     width: double.infinity,
                     child: FlatButton(
-                      child: Text("LOGIN"),
+                      child: Text('LOGIN'),
                       textColor: Colors.white,
                       padding: EdgeInsets.all(16),
                       onPressed: () async{
 
                         final pass = _passController.text.toString().trim();
                         final email = _emailController.text.toString().trim();
-                        FirebaseUser user = await loginFirebase(email, pass);
+                        var user = await loginFirebase(email, pass);
                         if(user == null){
-                          print("Error");
+                          print('Error');
                         }
-                        Fluttertoast.showToast(
+                        /*Fluttertoast.showToast(
                             msg: "Your email is $email and password is $pass",
                             toastLength: Toast.LENGTH_SHORT,
                             gravity: ToastGravity.BOTTOM,
@@ -95,7 +94,7 @@ class Login extends StatelessWidget{
                             backgroundColor: Colors.black,
                             textColor: Colors.lightGreen,
                             fontSize: 16.0
-                        );
+                        );*/
                       },
                       color: Colors.blue,
                     ),
@@ -105,7 +104,7 @@ class Login extends StatelessWidget{
                   Container(
                     width: double.infinity,
                     child: FlatButton(
-                      child: Text("Register"),
+                      child: Text('Register'),
                       textColor: Colors.white,
                       padding: EdgeInsets.all(16),
                       onPressed: () {
@@ -114,7 +113,7 @@ class Login extends StatelessWidget{
                             builder: (context) => Registration()
                         ));
 
-                        Fluttertoast.showToast(
+                        /*Fluttertoast.showToast(
                             msg: "Wait a min!!! ",
                             toastLength: Toast.LENGTH_SHORT,
                             gravity: ToastGravity.BOTTOM,
@@ -122,7 +121,7 @@ class Login extends StatelessWidget{
                             backgroundColor: Colors.black,
                             textColor: Colors.lightGreen,
                             fontSize: 16.0
-                        );
+                        );*/
                       },
                       color: Colors.blue,
                     ),
@@ -132,12 +131,12 @@ class Login extends StatelessWidget{
                   Container(
                     width: double.infinity,
                     child: FlatButton(
-                      child: Text("Google"),
+                      child: Text('Google'),
                       textColor: Colors.white,
                       padding: EdgeInsets.all(16),
                       onPressed:() async {
-                        String res = await signInWithGoogle();
-                        Fluttertoast.showToast(
+                        await signInWithGoogle();
+                        /*Fluttertoast.showToast(
                             msg: "Wait a min!!! $res",
                             toastLength: Toast.LENGTH_SHORT,
                             gravity: ToastGravity.BOTTOM,
@@ -145,7 +144,7 @@ class Login extends StatelessWidget{
                             backgroundColor: Colors.black,
                             textColor: Colors.lightGreen,
                             fontSize: 16.0
-                        );
+                        );*/
 
                         Navigator.pop(context);
                       },

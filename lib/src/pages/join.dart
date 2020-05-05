@@ -1,10 +1,10 @@
 import 'dart:async';
+import 'package:agora_flutter_quickstart/screen/splash.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../utils/settings.dart';
 import 'package:wakelock/wakelock.dart';
-
 
 class JoinPage extends StatefulWidget {
   /// non-modifiable channel name of the page
@@ -22,9 +22,10 @@ class JoinPage extends StatefulWidget {
 }
 
 class _JoinPageState extends State<JoinPage> {
+  bool loading = true;
+  bool completed = false;
   static final _users = <int>[];
   static final user = <int>[];
-  final _infoStrings = <String>[];
   bool muted = true;
 
 
@@ -46,15 +47,7 @@ class _JoinPageState extends State<JoinPage> {
   }
 
   Future<void> initialize() async {
-    if (APP_ID.isEmpty) {
-      setState(() {
-        _infoStrings.add(
-          'APP_ID missing, please provide your APP_ID in settings.dart',
-        );
-        _infoStrings.add('Agora Engine is not starting');
-      });
-      return;
-    }
+
 
     await _initAgoraRtcEngine();
     _addAgoraEventHandlers();
@@ -71,16 +64,11 @@ class _JoinPageState extends State<JoinPage> {
     await AgoraRtcEngine.muteLocalAudioStream(muted);
     await AgoraRtcEngine.enableLocalVideo(!muted);
 
+
   }
 
   /// Add agora event handlers
   void _addAgoraEventHandlers() {
-    AgoraRtcEngine.onError = (dynamic code) {
-      setState(() {
-        final info = 'onError: $code';
-        _infoStrings.add(info);
-      });
-    };
 
     AgoraRtcEngine.onJoinChannelSuccess = (
       String channel,
@@ -88,62 +76,62 @@ class _JoinPageState extends State<JoinPage> {
       int elapsed,
     ) {
       Wakelock.enable();
-      setState(() {
-        final info = 'onJoinChannel: $channel, uid: $uid';
-        _infoStrings.add(info);
-      });
     };
 
-    AgoraRtcEngine.onLeaveChannel = () {
-      setState(() {
-        _infoStrings.add('onLeaveChannel');
-        _users.clear();
-      });
-    };
 
     AgoraRtcEngine.onUserJoined = (int uid, int elapsed) {
       setState(() {
-        final info = 'userJoined: $uid';
-        _infoStrings.add(info);
         _users.add(uid);
       });
     };
 
     AgoraRtcEngine.onUserOffline = (int uid, int reason) {
-      setState(() {
-        final info = 'userOffline: $uid';
-        _infoStrings.add(info);
+
+
+        if(uid==widget.channelId){
+          setState(() {
+            completed=true;
+            Future.delayed(const Duration(milliseconds: 1500), () async{
+              await Wakelock.disable();
+              Navigator.pop(context);
+            });
+          });
+        }
+        /*Fluttertoast.showToast(
+            msg: '$uid',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.black,
+            textColor: Colors.lightGreen,
+            fontSize: 16.0
+        );*/
         _users.remove(uid);
-      });
     };
 
-    AgoraRtcEngine.onFirstRemoteVideoFrame = (
-      int uid,
-      int width,
-      int height,
-      int elapsed,
-    ) {
-      setState(() {
-        final info = 'firstRemoteVideo: $uid ${width}x $height';
-        _infoStrings.add(info);
-      });
-    };
+
   }
 
   /// Helper function to get list of native views
   List<Widget> _getRenderViews() {
-    final List<AgoraRenderWidget> list = [];
+    final List<AgoraRenderWidget>  list = [];
     //user.add(widget.channelId);
-
     _users.forEach((int channelId) {
-
       if(channelId == widget.channelId) {
-
         list.add(AgoraRenderWidget(channelId));
-
       }
     });
+    if(list.isEmpty) {
 
+      setState(() {
+        loading=true;
+      });
+    }
+    else{
+      setState(() {
+        loading=false;
+      });
+    }
 
     return list;
   }
@@ -153,20 +141,12 @@ class _JoinPageState extends State<JoinPage> {
     return Expanded(child: Container(child: view));
   }
 
-  /// Video view row wrapper
-  Widget _expandedVideoRow(List<Widget> views) {
-    final wrappedViews = views.map<Widget>(_videoView).toList();
-    return Expanded(
-      child: Row(
-        children: wrappedViews,
-      ),
-    );
-  }
 
   /// Video layout wrapper
   Widget _viewRows() {
     final views = _getRenderViews();
-    return Container(
+    return (loading==true)&&(completed==false)?
+      SplashPage():Container(
         child: Column(
           children: <Widget>[_videoView(views[0])],
         ));
@@ -202,7 +182,6 @@ class _JoinPageState extends State<JoinPage> {
         ));
       default:
     }*/
-    return Container();
   }
 
   /// Toolbar layout
@@ -231,7 +210,7 @@ class _JoinPageState extends State<JoinPage> {
   }
 
   /// Info panel to show logs
-  Widget _panel() {
+  /*Widget _panel() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 48),
       alignment: Alignment.bottomCenter,
@@ -278,30 +257,86 @@ class _JoinPageState extends State<JoinPage> {
         ),
       ),
     );
+  }*/
+
+  bool pop = false;
+  Future<void> _showDialog() async {
+    // flutter defined function
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: Text('Alert Dialog title'),
+          content: Text('Alert Dialog body'),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            FlatButton(
+              child: Text("Don't"),
+              onPressed: () {
+                pop=false;
+                Navigator.of(context, rootNavigator: true).pop('dialog');
+              },
+            ),
+            FlatButton(
+              child: Text('Close'),
+              onPressed: () async {
+                await Wakelock.disable();
+                Navigator.of(context).pop();
+                pop = true;
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  void _onCallEnd(BuildContext context) {
-    Wakelock.disable();
-    Navigator.pop(context);
+
+  void _onCallEnd(BuildContext context) async {
+    await _showDialog();
+    if(pop){
+      Navigator.pop(context);
+    }
+  }
+  Future<bool> _willPopCallback() async {
+    await _showDialog();
+    if(pop) {
+      return true;
+    }// return true if the route to be popped
+  }
+
+  Widget _ending(){
+    return Center(
+      child: Text('The Live has ended\nThank you',
+        style: TextStyle(
+          fontSize: 25.0,letterSpacing: 1.5,
+          color: Colors.red[900],
+        ),
+      )
+    );
   }
 
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Agora Flutter QuickStart'),
-      ),
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Stack(
-          children: <Widget>[
-            _viewRows(),
-            _panel(),
-            _toolbar(),
-          ],
+    return WillPopScope(
+        child:Scaffold(
+          appBar: AppBar(
+            title: Text("${widget.channelName}'s Live"),
+          ),
+          backgroundColor: Colors.black,
+          body: Center(
+            child: (completed==true)?_ending():Stack(
+              children: <Widget>[
+                _viewRows(),
+                _toolbar(),
+              ],
+            ),
+          ),
         ),
-      ),
+        onWillPop: _willPopCallback
     );
   }
 }
+

@@ -1,8 +1,8 @@
 import 'dart:async';
+import 'package:agora_flutter_quickstart/firebaseDB/firestoreDB.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import '../utils/settings.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wakelock/wakelock.dart';
 
 class CallPage extends StatefulWidget {
@@ -18,11 +18,8 @@ class CallPage extends StatefulWidget {
 
 class _CallPageState extends State<CallPage> {
   static final _users = <int>[];
-  final _infoStrings = <String>[];
+  String channel_name;
 
-  final databaseReference = Firestore.instance;
-
-  final Firestore _db = Firestore.instance;
   bool muted = false;
 
   @override
@@ -43,15 +40,6 @@ class _CallPageState extends State<CallPage> {
   }
 
   Future<void> initialize() async {
-    if (APP_ID.isEmpty) {
-      setState(() {
-        _infoStrings.add(
-          'APP_ID missing, please provide your APP_ID in settings.dart',
-        );
-        _infoStrings.add('Agora Engine is not starting');
-      });
-      return;
-    }
 
     await _initAgoraRtcEngine();
     _addAgoraEventHandlers();
@@ -69,54 +57,35 @@ class _CallPageState extends State<CallPage> {
 
   /// Add agora event handlers
   void _addAgoraEventHandlers() {
-    AgoraRtcEngine.onError = (dynamic code) {
-      setState(() {
-        final info = 'onError: $code';
-        _infoStrings.add(info);
-      });
-    };
 
     AgoraRtcEngine.onJoinChannelSuccess = (
       String channel,
       int uid,
       int elapsed,
     ) async{
-      print('Xperion $uid');
 
-      final collection = 'liveuser';
       final documentId = widget.channelName;
-      final snapShot = await _db.collection(collection).document(documentId).get();
-      if(snapShot.exists){
-        await _db.collection(collection).document(documentId).updateData({
-          'name': widget.channelName,
-          'channel': uid
-        });
-      } else {
-        await _db.collection(collection).document(documentId).setData({
-          'name': widget.channelName,
-          'channel': uid
-        });
-      }
+      channel_name= documentId;
+      await FireStoreClass.createLiveUser(name: documentId,id: uid);
+      // The above line create a document in the firestore with username as documentID
 
-      Wakelock.enable();
+      await Wakelock.enable();
+      // This is used for Keeping the device awake. Its now enabled
+
       setState(() {
         final info = 'onJoinChannel: $channel, uid: $uid';
-        _infoStrings.add(info);
       });
     };
 
     AgoraRtcEngine.onLeaveChannel = () {
       setState(() {
-        _infoStrings.add('onLeaveChannel');
         _users.clear();
-        _db.collection('liveuser').document(widget.channelName).delete();
       });
     };
 
     AgoraRtcEngine.onUserJoined = (int uid, int elapsed) {
       setState(() {
         final info = 'userJoined: $uid';
-        _infoStrings.add(info);
         _users.add(uid);
       });
     };
@@ -124,27 +93,14 @@ class _CallPageState extends State<CallPage> {
     AgoraRtcEngine.onUserOffline = (int uid, int reason) {
       setState(() {
         final info = 'userOffline: $uid';
-        _infoStrings.add(info);
         _users.remove(uid);
-      });
-    };
-
-    AgoraRtcEngine.onFirstRemoteVideoFrame = (
-      int uid,
-      int width,
-      int height,
-      int elapsed,
-    ) {
-      setState(() {
-        final info = 'firstRemoteVideo: $uid ${width}x $height';
-        _infoStrings.add(info);
       });
     };
   }
 
   /// Helper function to get list of native views
   List<Widget> _getRenderViews() {
-    final List<AgoraRenderWidget> list = [
+    final list = [
       AgoraRenderWidget(0, local: true, preview: true),
     ];
     _users.forEach((int uid) => list.add(AgoraRenderWidget(uid)));
@@ -156,7 +112,7 @@ class _CallPageState extends State<CallPage> {
     return Expanded(child: Container(child: view));
   }
 
-  /// Video view row wrapper
+/*  /// Video view row wrapper
   Widget _expandedVideoRow(List<Widget> views) {
     final wrappedViews = views.map<Widget>(_videoView).toList();
     return Expanded(
@@ -164,7 +120,7 @@ class _CallPageState extends State<CallPage> {
         children: wrappedViews,
       ),
     );
-  }
+  }*/
 
   /// Video layout wrapper
   Widget _viewRows() {
@@ -206,7 +162,7 @@ class _CallPageState extends State<CallPage> {
         ));
       default:
     }*/
-    return Container();
+
   }
 
   /// Toolbar layout
@@ -259,7 +215,7 @@ class _CallPageState extends State<CallPage> {
   }
 
   /// Info panel to show logs
-  Widget _panel() {
+  /*Widget _panel() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 48),
       alignment: Alignment.bottomCenter,
@@ -307,10 +263,11 @@ class _CallPageState extends State<CallPage> {
       ),
     );
   }
-
-  void _showDialog() {
+*/
+  bool pop = false;
+  Future<void> _showDialog() async {
     // flutter defined function
-    showDialog(
+    await showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
@@ -320,11 +277,22 @@ class _CallPageState extends State<CallPage> {
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             FlatButton(
-              child: Text('Close'),
+              child: Text("Don't"),
               onPressed: () {
-                Navigator.of(context).pop();
+                pop=false;
+                Navigator.of(context, rootNavigator: true).pop('dialog');
               },
             ),
+            FlatButton(
+              child: Text('Close'),
+              onPressed: () async {
+                await Wakelock.disable();
+                Navigator.of(context).pop();
+                pop = true;
+              },
+            ),
+
+
           ],
         );
       },
@@ -333,8 +301,11 @@ class _CallPageState extends State<CallPage> {
 
   void _onCallEnd(BuildContext context) async {
     await _showDialog();
-    await Wakelock.enable();
-    Navigator.pop(context);
+    if(pop){
+      await FireStoreClass.deleteUser(username: channel_name);
+      //await Firestore.instance.collection('liveuser').document(channel_name).delete();
+      Navigator.pop(context);
+    }
   }
 
   void _onToggleMute() {
@@ -348,22 +319,34 @@ class _CallPageState extends State<CallPage> {
     AgoraRtcEngine.switchCamera();
   }
 
+  Future<bool> _willPopCallback() async {
+    await _showDialog();
+    if(pop) {
+      await FireStoreClass.deleteUser(username: channel_name);
+      //await Firestore.instance.collection('liveuser').document(channel_name).delete();
+      return true;
+    }// return true if the route to be popped
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Agora Flutter QuickStart'),
-      ),
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Stack(
-          children: <Widget>[
-            _viewRows(),
-            _panel(),
-            _toolbar(),
-          ],
+    return WillPopScope(
+        child:Scaffold(
+          appBar: AppBar(
+            title: Text("${widget.channelName}'s Live"),
+          ),
+          backgroundColor: Colors.black,
+          body: Center(
+            child: Stack(
+              children: <Widget>[
+                _viewRows(),
+                _toolbar(),
+              ],
+            ),
+          ),
         ),
-      ),
+        onWillPop: _willPopCallback
     );
   }
 }

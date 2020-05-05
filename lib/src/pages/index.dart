@@ -32,7 +32,7 @@ class IndexState extends State<IndexPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Agora Flutter QuickStart'),
+        title: Text('Live List'),
       ),
       body: Center(
         child: Container(
@@ -101,12 +101,10 @@ class IndexState extends State<IndexPage> {
           : _validateError = false;
     });
     if (_channelController.text.isNotEmpty) {
-
       await getChannel();
       // await for camera and mic permissions before pushing video page
       await _handleCameraAndMic();
       // push video page with given channel name
-
       await Navigator.push(
         context,
         MaterialPageRoute(
@@ -125,11 +123,9 @@ class IndexState extends State<IndexPage> {
         .getDocuments()
         .then((QuerySnapshot snapshot) {
       snapshot.documents.forEach((f) {
-        print('${f.data}');
         var v = f.data;
         if(v['name'] == _channelController.text) {
           channel = int.parse(f.data['channel'].toString());
-          print('Xperion $channel');
         }
       });
     });
