@@ -1,14 +1,24 @@
-import 'package:agora_flutter_quickstart/firebaseDB/auth.dart';
+import 'package:agorartm/firebaseDB/auth.dart';
 import 'package:flutter/material.dart';
 
-class Registration extends StatelessWidget{
+class Registration extends StatefulWidget{
+  @override
+  _RegistrationState createState() => _RegistrationState();
+}
+
+class _RegistrationState extends State<Registration> {
   final _emailController = TextEditingController();
+
   final _passController = TextEditingController();
+
   final _nameController = TextEditingController();
-  final _imageController = TextEditingController();
 
+  final _usernameController = TextEditingController();
 
-
+  bool usernameError = false;
+  bool invalidError = false;
+  bool existsError = false;
+  bool passwordError = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +45,7 @@ class Registration extends StatelessWidget{
                             borderSide: BorderSide(color: Colors.grey[300])
                         ),
                         filled: true,
+                        errorText: invalidError ? 'Invalid Email' : existsError? 'Email Already Exists': null,
                         fillColor: Colors.grey[100],
                         hintText: 'Email ID',
 
@@ -58,6 +69,7 @@ class Registration extends StatelessWidget{
                       ),
                       filled: true,
                       fillColor: Colors.grey[100],
+                      errorText: passwordError ? 'Weak Password! Min 6 characters' : null,
                       hintText: 'Password',
                     ),
                     controller: _passController,
@@ -100,11 +112,12 @@ class Registration extends StatelessWidget{
                           borderRadius: BorderRadius.all(Radius.circular(8)),
                           borderSide: BorderSide(color: Colors.grey[300])
                       ),
+                      errorText: usernameError ? 'Username is not unique' : null,
                       filled: true,
                       fillColor: Colors.grey[100],
                       hintText: 'Username',
                     ),
-                    controller: _imageController,
+                    controller: _usernameController,
                     //textCapitalization: TextCapitalization.words,
                   ),
                   SizedBox(height: 6,),
@@ -130,21 +143,43 @@ class Registration extends StatelessWidget{
                       padding: EdgeInsets.all(16),
                       onPressed: () async{
 
+                        usernameError=false;
+                        passwordError=false;
+                        invalidError=false;
+                        existsError=false;
                         final pass = _passController.text.toString().trim();
                         final email = _emailController.text.toString().trim();
                         final name = _nameController.text.toString().trim();
-                        final url = _imageController.text.toString().trim();
+                        final username = _usernameController.text.toString().trim();
 
-                       var result = await registerUser(email, pass, name, url);
-                       if(result){
-                         Navigator.pop(context);
+                         var result = await registerUser(email, pass, name, username);
+                         switch(result) {
+                           case 1:
+                             Navigator.pop(context);
+                             break;
+                           case -1:
+                             setState(() {
+                               usernameError = true;
+                             });
+                             break;
+                           case -2:
+                             setState(() {
+                               invalidError = true;
+                             });
+                             break;
+                           case -3:
+                             setState(() {
+                               existsError = true;
+                             });
+                             break;
+                           case -4:
+                             setState(() {
+                               passwordError = true;
+                             });
+                             break;
+                         }
+                       },
 
-                       }
-                       else{
-                         print('Error');
-                       }
-
-                      },
                       color: Colors.blue,
                     ),
                   ),

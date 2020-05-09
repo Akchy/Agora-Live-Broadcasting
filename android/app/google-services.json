@@ -8,6 +8,43 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:383878113435:android:0f426bbd40a5408721be3e",
+        "android_client_info": {
+          "package_name": "com.davish.agorartm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "383878113435-1cidq2nlnev9f7fljerqp23n4lf11rlr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.davish.agorartm",
+            "certificate_hash": "fb38c63bad9cd94d423a3b33d636d1560539c701"
+          }
+        },
+        {
+          "client_id": "383878113435-dhglsr0qp35defvudr2gc8dusgfri03s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlLxzisAwYuxmhDwK-NIBw34ub2Q9rH5A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "383878113435-dhglsr0qp35defvudr2gc8dusgfri03s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:383878113435:android:3c3788949d89e4c021be3e",
         "android_client_info": {
           "package_name": "com.example.agoraflutterquickstart"

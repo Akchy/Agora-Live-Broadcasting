@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:agorartm/firebaseDB/firestoreDB.dart';
+import 'dart:async';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn();
@@ -30,37 +32,82 @@ void signOutGoogle() async{
   print('User Sign Out');
 }
 
-Future<bool> registerUser(String email, String pass, String name, String url) async{
+Future<int> registerUser(String email, String pass, String name, String username) async{
   var _auth= FirebaseAuth.instance;
   try{
 
     var result = await _auth.createUserWithEmailAndPassword(email: email, password: pass);
+
     var user = result.user;
 
     var info = UserUpdateInfo();
     info.displayName = name;
-    info.photoUrl = url;
+    info.photoUrl = '/';
 
     await user.updateProfile(info);
-    return true;
+    var user_exists = await FireStoreClass.regUser(name: name,email: email,username: username);
+    if(!user_exists) {
+      return -1;
+    }
+    return 1;
   }
   catch(e){
-    print(e);
-    return false;
+    print(e.code);
+    switch (e.code) {
+      case 'ERROR_INVALID_EMAIL':
+        return -2;
+        break;
+      case 'ERROR_EMAIL_ALREADY_IN_USE':
+        return -3;
+        break;
+        /*
+      case 'ERROR_USER_NOT_FOUND':
+        authError = 'User Not Found';
+        break;
+      case 'ERROR_WRONG_PASSWORD':
+        authError = 'Wrong Password';
+        break;
+        */
+      case 'ERROR_WEAK_PASSWORD':
+        return -4;
+        break;
+    }
+    return 0;
   }
 }
-Future<FirebaseUser> loginFirebase(String email, String pass) async{
+Future<int> loginFirebase(String email, String pass) async{
   var _auth = FirebaseAuth.instance;
 
+  await FireStoreClass.getDetails(email:email);
   try {
     var result = await _auth.signInWithEmailAndPassword(
         email: email, password: pass);
     var user = result.user;
-    return user;
+    if(user==null) {
+      return null;
+    }
+    return 1;
   }
   catch(e)
   {
-    print(e);
+    switch (e.code) {
+      case 'ERROR_INVALID_EMAIL':
+        return -1;
+        break;
+      case 'ERROR_WRONG_PASSWORD':
+        return -2;
+        break;
+      case 'ERROR_USER_NOT_FOUND':
+        return -3;
+        break;
+      /*case 'ERROR_WRONG_PASSWORD':
+        authError = 'Wrong Password';
+        break;
+      case 'ERROR_WEAK_PASSWORD':
+        return -4;
+        break;
+       */
+    }
     return null;
   }
 }

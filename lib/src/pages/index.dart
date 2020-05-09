@@ -1,8 +1,11 @@
 import 'dart:async';
 
-import 'package:agora_flutter_quickstart/src/pages/join.dart';
+import 'package:agorartm/firebaseDB/firestoreDB.dart';
+import 'package:agorartm/src/pages/join.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../login_screen_2.dart';
 import './call.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -17,9 +20,10 @@ class IndexState extends State<IndexPage> {
   final _channelController = TextEditingController();
   int channel;
 
-  final databaseReference = Firestore.instance;
+  static final databaseReference = Firestore.instance;
   /// if channel textField is validated to have error
   bool _validateError = false;
+  var name='Jon Doe', username='Jon';
 
   @override
   void dispose() {
@@ -27,35 +31,36 @@ class IndexState extends State<IndexPage> {
     _channelController.dispose();
     super.dispose();
   }
+  @override
+  void initState() {
+    super.initState();
+    _loadcounter();
+  }
 
+  _loadcounter() async{
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      name = prefs.getString('name') ?? 'null';
+      username = prefs.getString('username') ?? 'null';
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Live List'),
+        backgroundColor: Colors.black87,
+        title: Text("$name's Profile"),
       ),
       body: Center(
-        child: Container(
+        child: /*Container(
+          child: LoginScreen2(),
+        ),*/
+
+        Container(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           height: 400,
           child: Column(
             children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Expanded(
-                      child: TextField(
-                    controller: _channelController,
-                    decoration: InputDecoration(
-                      errorText:
-                          _validateError ? 'Channel name is mandatory' : null,
-                      border: UnderlineInputBorder(
-                        borderSide: BorderSide(width: 1),
-                      ),
-                      hintText: 'Channel name',
-                    ),
-                  ))
-                ],
-              ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Row(
@@ -63,13 +68,29 @@ class IndexState extends State<IndexPage> {
                     Expanded(
                       child: RaisedButton(
                         onPressed: onCreate,
-                        child: Text('Create'),
+                        child: Text('Create Live'),
                         color: Colors.blueAccent,
                         textColor: Colors.white,
                       ),
                     )
                   ],
                 ),
+              ),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                      child: TextField(
+                        controller: _channelController,
+                        decoration: InputDecoration(
+                          errorText:
+                          _validateError ? 'Channel name is mandatory' : null,
+                          border: UnderlineInputBorder(
+                            borderSide: BorderSide(width: 1),
+                          ),
+                          hintText: 'Channel name to join',
+                        ),
+                      ))
+                ],
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -85,7 +106,7 @@ class IndexState extends State<IndexPage> {
                     )
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -102,8 +123,6 @@ class IndexState extends State<IndexPage> {
     });
     if (_channelController.text.isNotEmpty) {
       await getChannel();
-      // await for camera and mic permissions before pushing video page
-      await _handleCameraAndMic();
       // push video page with given channel name
       await Navigator.push(
         context,
@@ -111,6 +130,7 @@ class IndexState extends State<IndexPage> {
           builder: (context) => JoinPage(
             channelName: _channelController.text,
             channelId: channel,
+            username: username,
           ),
         ),
       );
@@ -132,25 +152,18 @@ class IndexState extends State<IndexPage> {
   }
 
   Future<void> onCreate() async {
-    // update input validation
-    setState(() {
-      _channelController.text.isEmpty
-          ? _validateError = true
-          : _validateError = false;
-    });
-    if (_channelController.text.isNotEmpty) {
-      // await for camera and mic permissions before pushing video page
-      await _handleCameraAndMic();
-      // push video page with given channel name
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CallPage(
-            channelName: _channelController.text,
-          ),
+    // await for camera and mic permissions before pushing video page
+    await _handleCameraAndMic();
+    // push video page with given channel name
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CallPage(
+          channelName: username,
         ),
-      );
-    }
+      ),
+    );
+
   }
 
 

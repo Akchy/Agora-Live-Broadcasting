@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:agora_flutter_quickstart/screen/splash.dart';
+import 'package:agora_rtm/agora_rtm.dart';
+import 'package:agorartm/screen/splash.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -10,11 +11,12 @@ class JoinPage extends StatefulWidget {
   /// non-modifiable channel name of the page
   final String channelName;
   final int channelId;
+  final String username;
 
 
 
   /// Creates a call page with given channel name.
-  const JoinPage({Key key, this.channelName, this.channelId}) : super(key: key);
+  const JoinPage({Key key, this.channelName, this.channelId, this.username}) : super(key: key);
 
 
   @override
@@ -27,6 +29,16 @@ class _JoinPageState extends State<JoinPage> {
   static final _users = <int>[];
   static final user = <int>[];
   bool muted = true;
+
+  bool _isLogin = true;
+  bool _isInChannel = true;
+
+  final _channelMessageController = TextEditingController();
+
+  final _infoStrings = <String>[];
+
+  AgoraRtmClient _client;
+  AgoraRtmChannel _channel;
 
 
   @override
@@ -44,6 +56,7 @@ class _JoinPageState extends State<JoinPage> {
     super.initState();
     // initialize agora sdk
     initialize();
+    _createClient();
   }
 
   Future<void> initialize() async {
@@ -150,38 +163,6 @@ class _JoinPageState extends State<JoinPage> {
         child: Column(
           children: <Widget>[_videoView(views[0])],
         ));
-    /*switch (views.length) {
-      case 1:
-        return Container(
-            child: Column(
-          children: <Widget>[_videoView(views[0])],
-        ));
-      case 2:
-        return Container(
-            child: Column(
-          children: <Widget>[
-            _expandedVideoRow([views[0]]),
-            _expandedVideoRow([views[1]])
-          ],
-        ));
-      case 3:
-        return Container(
-            child: Column(
-          children: <Widget>[
-            _expandedVideoRow(views.sublist(0, 2)),
-            _expandedVideoRow(views.sublist(2, 3))
-          ],
-        ));
-      case 4:
-        return Container(
-            child: Column(
-          children: <Widget>[
-            _expandedVideoRow(views.sublist(0, 2)),
-            _expandedVideoRow(views.sublist(2, 4))
-          ],
-        ));
-      default:
-    }*/
   }
 
   /// Toolbar layout
@@ -210,7 +191,7 @@ class _JoinPageState extends State<JoinPage> {
   }
 
   /// Info panel to show logs
-  /*Widget _panel() {
+  Widget _panel() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 48),
       alignment: Alignment.bottomCenter,
@@ -257,7 +238,7 @@ class _JoinPageState extends State<JoinPage> {
         ),
       ),
     );
-  }*/
+  }
 
   bool pop = false;
   Future<void> _showDialog() async {
@@ -296,12 +277,16 @@ class _JoinPageState extends State<JoinPage> {
   void _onCallEnd(BuildContext context) async {
     await _showDialog();
     if(pop){
+      _logout();
+      _leaveChannel();
       Navigator.pop(context);
     }
   }
   Future<bool> _willPopCallback() async {
     await _showDialog();
     if(pop) {
+      _logout();
+      _leaveChannel();
       return true;
     }// return true if the route to be popped
   }
@@ -331,12 +316,112 @@ class _JoinPageState extends State<JoinPage> {
               children: <Widget>[
                 _viewRows(),
                 _toolbar(),
+                _buildSendChannelMessage(),
+                _panel(),
               ],
             ),
           ),
         ),
         onWillPop: _willPopCallback
     );
+  }
+  // Agora RTM
+
+
+  Widget _buildSendChannelMessage() {
+    if (!_isLogin || !_isInChannel) {
+      return Container();
+    }
+    return Row(children: <Widget>[
+      new Expanded(
+          child: new TextField(
+              controller: _channelMessageController,
+              decoration: InputDecoration(hintText: 'Input channel message'))),
+      new OutlineButton(
+        child: Text('Send to Channel', style: textStyle),
+        onPressed: _toggleSendChannelMessage,
+      )
+    ]);
+  }
+
+  void _logout() async {
+    try {
+      await _client.logout();
+      _log('Logout success.');
+    } catch (errorCode) {
+      _log('Logout error: ' + errorCode.toString());
+    }
+  }
+
+  static TextStyle textStyle = TextStyle(fontSize: 18, color: Colors.blue);
+
+
+  void _leaveChannel() async {
+    try {
+      await _channel.leave();
+      _log('Leave channel success.');
+      _client.releaseChannel(_channel.channelId);
+      _channelMessageController.text = null;
+
+    } catch (errorCode) {
+      _log('Leave channel error: ' + errorCode.toString());
+    }
+  }
+
+  void _toggleSendChannelMessage() async {
+    String text = _channelMessageController.text;
+    if (text.isEmpty) {
+      return;
+    }
+    try {
+      await _channel.sendMessage(AgoraRtmMessage.fromText(text));
+      _log('test: $text');
+    } catch (errorCode) {
+      _log('Send channel message error: ' + errorCode.toString());
+    }
+  }
+
+  void _createClient() async {
+    _client =
+    await AgoraRtmClient.createInstance('b42ce8d86225475c9558e478f1ed4e8e');
+    _client.onMessageReceived = (AgoraRtmMessage message, String peerId) {
+      _log(peerId + ": " + message.text);
+    };
+    _client.onConnectionStateChanged = (int state, int reason) {
+      if (state == 5) {
+        _client.logout();
+        _log('Logout.');
+        setState(() {
+          _isLogin = false;
+        });
+      }
+    };
+    await _client.login(null, widget.username );
+    _channel = await _createChannel(widget.channelName);
+    await _channel.join();
+  }
+
+  Future<AgoraRtmChannel> _createChannel(String name) async {
+    AgoraRtmChannel channel = await _client.createChannel(name);
+    channel.onMemberJoined = (AgoraRtmMember member) {
+      _log(
+          'Member joined: ' + member.userId);
+    };
+    channel.onMemberLeft = (AgoraRtmMember member) {
+      _log('Member left: ' + member.userId + ', channel: ' + member.channelId);
+    };
+    channel.onMessageReceived =
+        (AgoraRtmMessage message, AgoraRtmMember member) {
+      _log(member.userId + ':-  ' + message.text);
+    };
+    return channel;
+  }
+
+  void _log(String info) {
+    print(info);
+    setState(() {
+      _infoStrings.insert(0, info);
+    });
   }
 }
 
