@@ -1,14 +1,13 @@
 import 'dart:async';
 
-import 'package:agorartm/firebaseDB/firestoreDB.dart';
+import 'package:agorartm/firebaseDB/auth.dart';
 import 'package:agorartm/src/pages/join.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../login_screen_2.dart';
-import './call.dart';
+import './host.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 
 class IndexPage extends StatefulWidget {
   @override
@@ -21,9 +20,7 @@ class IndexState extends State<IndexPage> {
   int channel;
 
   static final databaseReference = Firestore.instance;
-  /// if channel textField is validated to have error
-  bool _validateError = false;
-  var name='Jon Doe', username='Jon';
+  var name='Jon Doe', username='jon';
 
   @override
   void dispose() {
@@ -34,101 +31,127 @@ class IndexState extends State<IndexPage> {
   @override
   void initState() {
     super.initState();
-    _loadcounter();
+    loadCounter();
   }
 
-  _loadcounter() async{
+  Future<void> loadCounter() async{
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      name = prefs.getString('name') ?? 'null';
-      username = prefs.getString('username') ?? 'null';
+      name = prefs.getString('name') ?? 'Jon Doe';
+      username = prefs.getString('username') ?? 'jon';
     });
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: <Widget>[
+          Padding(
+              padding: EdgeInsets.only(right: 20.0),
+              child: GestureDetector(
+                onTap: () => logout(),
+                child: Icon(
+                    Icons.exit_to_app
+                ),
+              )
+          ),
+        ],
         backgroundColor: Colors.black87,
         title: Text("$name's Profile"),
       ),
-      body: Center(
-        child: /*Container(
-          child: LoginScreen2(),
-        ),*/
-
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          height: 400,
-          child: Column(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: RaisedButton(
-                        onPressed: onCreate,
-                        child: Text('Create Live'),
-                        color: Colors.blueAccent,
-                        textColor: Colors.white,
-                      ),
-                    )
-                  ],
+      body: Container(
+        color: Colors.black,
+        height: MediaQuery.of(context).size.height,
+        alignment: Alignment(0.0, 0.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 10.0),
+        child: Column(
+          children: <Widget>[
+            RaisedButton(
+              onPressed: onCreate,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(80.0)),
+              padding: EdgeInsets.all(0.0),
+              child: Ink(
+                decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [Colors.purple, Colors.pink],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30.0)
+                ),
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: 300.0, minHeight: 50.0),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Create Live',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 25,
+                    ),
+                  ),
                 ),
               ),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                      child: TextField(
-                        controller: _channelController,
-                        decoration: InputDecoration(
-                          errorText:
-                          _validateError ? 'Channel name is mandatory' : null,
-                          border: UnderlineInputBorder(
-                            borderSide: BorderSide(width: 1),
-                          ),
-                          hintText: 'Channel name to join',
-                        ),
-                      ))
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: RaisedButton(
-                        onPressed: onJoin,
-                        child: Text('Join'),
-                        color: Colors.blueAccent,
-                        textColor: Colors.white,
-                      ),
-                    )
-                  ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Live Users',style: TextStyle(color: Colors.pinkAccent,fontSize: 30,fontFamily:'Oswald'),),
                 ),
-              ),
-            ],
-          ),
+                StreamBuilder<QuerySnapshot>(
+                    stream: Firestore.instance.collection('liveuser').snapshots(),
+                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasError)
+                        return new Text('Error: ${snapshot.error}');
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                          return new Text('Loading...');
+                        default:
+                          return Container(
+                            decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: <Color>[
+                                    Colors.purpleAccent, Colors.pinkAccent
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.all(Radius.circular(10.0))
+                            ),
+                            child: new ListView(
+                              shrinkWrap: true,
+                              children: snapshot.data.documents.map((
+                                  DocumentSnapshot document) {
+                                return new ListTile(
+                                  onTap: ()=> onJoin(document['name']),
+                                  title: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: new Text(document['name'],style: TextStyle(color: Colors.white,fontSize: 20),),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          );
+                      }
+                    }
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Future<void> onJoin() async {
+  Future<void> onJoin(channelName) async {
     // update input validation
-    setState(() {
-      _channelController.text.isEmpty
-          ? _validateError = true
-          : _validateError = false;
-    });
-    if (_channelController.text.isNotEmpty) {
-      await getChannel();
+    if (channelName.isNotEmpty) {
+      await getChannel(channelName);
       // push video page with given channel name
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => JoinPage(
-            channelName: _channelController.text,
+            channelName: channelName,
             channelId: channel,
             username: username,
           ),
@@ -137,14 +160,14 @@ class IndexState extends State<IndexPage> {
     }
   }
 
-  Future<void> getChannel() async{
+  Future<void> getChannel(channelName) async{
     await databaseReference
         .collection('liveuser')
         .getDocuments()
         .then((QuerySnapshot snapshot) {
       snapshot.documents.forEach((f) {
         var v = f.data;
-        if(v['name'] == _channelController.text) {
+        if(v['name'] == channelName) {
           channel = int.parse(f.data['channel'].toString());
         }
       });

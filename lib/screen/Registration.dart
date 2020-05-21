@@ -24,184 +24,224 @@ class _RegistrationState extends State<Registration> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.black87,
           title: Text('Registration'),
         ),
-        body: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.all(32),
-            child: Form(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  TextFormField(
-                    decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
-                            borderSide: BorderSide(color: Colors.grey[200])
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
-                            borderSide: BorderSide(color: Colors.grey[300])
-                        ),
-                        filled: true,
-                        errorText: invalidError ? 'Invalid Email' : existsError? 'Email Already Exists': null,
-                        fillColor: Colors.grey[100],
-                        hintText: 'Email ID',
+        body: Container(
+            color: Colors.black,
+            height: MediaQuery.of(context).size.height,
+            alignment: Alignment(0.0, 0.0),
+            child: SingleChildScrollView(
+                child:  Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
 
-
+                    Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0,horizontal: 30.0),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(splashColor: Colors.transparent),
+                          child: TextField(
+                            autofocus: false,
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            style: TextStyle(fontSize: 18.0, color: Colors.black87),
+                            decoration: InputDecoration(
+                              filled: true,
+                              errorText: invalidError ? 'Invalid Email' : existsError? 'Email Already Exists': null,
+                              fillColor: Colors.white,
+                              hintText: 'Email',
+                              contentPadding:
+                              const EdgeInsets.only(left: 14.0, bottom: 8.0, top: 8.0),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                            ),
+                          ),
+                        )
                     ),
-                    controller: _emailController,
-                    //textCapitalization: TextCapitalization.words,
-                  ),
+                    Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0,horizontal: 30.0),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(splashColor: Colors.transparent),
+                          child: TextField(
+                            autofocus: false,
+                            obscureText: true,
+                            controller: _passController,
+                            style: TextStyle(fontSize: 18.0, color: Colors.black87),
+                            decoration: InputDecoration(
+                              filled: true,
+                              errorText: passwordError ? 'Weak Password! Min 6 characters' : null,
+                              fillColor: Colors.white,
+                              hintText: 'Password',
+                              contentPadding:
+                              const EdgeInsets.only(left: 14.0, bottom: 8.0, top: 8.0),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                            ),
+                          ),
+                        )
+                    ),
+                    Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0,horizontal: 30.0),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(splashColor: Colors.transparent),
+                          child: TextField(
+                            autofocus: false,
+                            controller: _nameController,
+                            keyboardType: TextInputType.text,
+                            textCapitalization: TextCapitalization.words,
+                            style: TextStyle(fontSize: 18.0, color: Colors.black87),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white,
+                              hintText: 'Full Name',
+                              contentPadding:
+                              const EdgeInsets.only(left: 14.0, bottom: 8.0, top: 8.0),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                            ),
+                          ),
+                        )
+                    ),Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0,horizontal: 30.0),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(splashColor: Colors.transparent),
+                          child: TextField(
+                            autofocus: false,
+                            controller: _usernameController,
+                            style: TextStyle(fontSize: 18.0, color: Colors.black87),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white,
+                              errorText: usernameError ? 'Username is not unique' : null,
+                              hintText: 'Username',
+                              contentPadding:
+                              const EdgeInsets.only(left: 14.0, bottom: 8.0, top: 8.0),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black),
+                                borderRadius: BorderRadius.circular(25.7),
+                              ),
+                            ),
+                          ),
+                        )
+                    ),
 
-                  SizedBox(height: 16,),
-
-                  TextFormField(
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                          borderSide: BorderSide(color: Colors.grey[200])
+                    Text('*The username should be unique',
+                      style: TextStyle(
+                          color: Colors.yellowAccent,
+                          letterSpacing: 1.0,
+                          fontSize: 10.0
                       ),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                          borderSide: BorderSide(color: Colors.grey[300])
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      errorText: passwordError ? 'Weak Password! Min 6 characters' : null,
-                      hintText: 'Password',
+                      //textCapitalization: TextCapitalization.words,
                     ),
-                    controller: _passController,
-                    obscureText: true,
-                    autofocus: false,
-                    //textCapitalization: TextCapitalization.words,
-                  ),
+                    Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0,horizontal: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.center,
 
-                  SizedBox(height: 16,),
+                          children: <Widget>[
+                            RaisedButton(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25.0),
+                                  side: BorderSide(color: Colors.black)
+                              ),
+                              color: Colors.pink,
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('Signup',style: TextStyle(color: Colors.white,fontSize: 20.0),),
+                              onPressed: () async{
 
-                  TextFormField(
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                          borderSide: BorderSide(color: Colors.grey[200])
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                          borderSide: BorderSide(color: Colors.grey[300])
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      hintText: 'Full Name',
+                                usernameError=false;
+                                passwordError=false;
+                                invalidError=false;
+                                existsError=false;
+                                final pass = _passController.text.toString().trim();
+                                final email = _emailController.text.toString().trim();
+                                final name = _nameController.text.toString().trim();
+                                final username = _usernameController.text.toString().trim();
 
+                                var result = await registerUser(email, pass, name, username);
+                                switch(result) {
+                                  case 1:
+                                    Navigator.pop(context);
+                                    break;
+                                  case -1:
+                                    setState(() {
+                                      usernameError = true;
+                                    });
+                                    break;
+                                  case -2:
+                                    setState(() {
+                                      invalidError = true;
+                                    });
+                                    break;
+                                  case -3:
+                                    setState(() {
+                                      existsError = true;
+                                    });
+                                    break;
+                                  case -4:
+                                    setState(() {
+                                      passwordError = true;
+                                    });
+                                    break;
+                                }
+                              },
+                            )
+                          ],
+                        )
+                    )
 
-                    ),
-                    controller: _nameController,
-                    textCapitalization: TextCapitalization.words,
-                  ),
-
-                  SizedBox(height: 16,),
-
-                  TextFormField(
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                          borderSide: BorderSide(color: Colors.grey[200])
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                          borderSide: BorderSide(color: Colors.grey[300])
-                      ),
-                      errorText: usernameError ? 'Username is not unique' : null,
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      hintText: 'Username',
-                    ),
-                    controller: _usernameController,
-                    //textCapitalization: TextCapitalization.words,
-                  ),
-                  SizedBox(height: 6,),
-
-                  Text('*The username should be unique',
-                    style: TextStyle(
-                      color: Colors.grey[850],
-                      letterSpacing: 1.0,
-                      fontSize: 10.0
-                    ),
-                    //textCapitalization: TextCapitalization.words,
-                  ),
-
-
-                  SizedBox(height: 16,),
-
-
-                  Container(
-                    width: double.infinity,
-                    child: FlatButton(
-                      child: Text('Register'),
-                      textColor: Colors.white,
-                      padding: EdgeInsets.all(16),
-                      onPressed: () async{
-
-                        usernameError=false;
-                        passwordError=false;
-                        invalidError=false;
-                        existsError=false;
-                        final pass = _passController.text.toString().trim();
-                        final email = _emailController.text.toString().trim();
-                        final name = _nameController.text.toString().trim();
-                        final username = _usernameController.text.toString().trim();
-
-                         var result = await registerUser(email, pass, name, username);
-                         switch(result) {
-                           case 1:
-                             Navigator.pop(context);
-                             break;
-                           case -1:
-                             setState(() {
-                               usernameError = true;
-                             });
-                             break;
-                           case -2:
-                             setState(() {
-                               invalidError = true;
-                             });
-                             break;
-                           case -3:
-                             setState(() {
-                               existsError = true;
-                             });
-                             break;
-                           case -4:
-                             setState(() {
-                               passwordError = true;
-                             });
-                             break;
-                         }
-                       },
-
-                      color: Colors.blue,
-                    ),
-                  ),
-                  SizedBox(height: 32,),
-
-                  Container(
-                    width: double.infinity,
-                    child: FlatButton(
-                      child: Text('Login Here'),
-                      textColor: Colors.white,
-                      padding: EdgeInsets.all(16),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      color: Colors.green[400],
-                    ),
-                  )
-                ],
-              ),
+                  ],
+                ),
             ),
-          ),
-        )
+        ),
     );
   }
 }

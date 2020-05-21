@@ -6,7 +6,7 @@ class SplashPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color:  Theme.of(context).primaryColor,
+        color:  Colors.black,
         child: SafeArea(
           child: Container(
             width: double.infinity,

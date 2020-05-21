@@ -3,6 +3,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:agorartm/firebaseDB/firestoreDB.dart';
 import 'dart:async';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn();
 
@@ -35,7 +37,13 @@ void signOutGoogle() async{
 Future<int> registerUser(String email, String pass, String name, String username) async{
   var _auth= FirebaseAuth.instance;
   try{
-
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('name', name);
+    await prefs.setString('username', username);
+    var userExists = await FireStoreClass.checkUsername();
+    if(!userExists) {
+      return -1;
+    }
     var result = await _auth.createUserWithEmailAndPassword(email: email, password: pass);
 
     var user = result.user;
@@ -45,10 +53,7 @@ Future<int> registerUser(String email, String pass, String name, String username
     info.photoUrl = '/';
 
     await user.updateProfile(info);
-    var user_exists = await FireStoreClass.regUser(name: name,email: email,username: username);
-    if(!user_exists) {
-      return -1;
-    }
+    await FireStoreClass.regUser(name: name,email: email,username: username);
     return 1;
   }
   catch(e){
@@ -75,11 +80,18 @@ Future<int> registerUser(String email, String pass, String name, String username
     return 0;
   }
 }
+
+Future<void> logout() async{
+  var _auth = FirebaseAuth.instance;
+  final prefs = await SharedPreferences.getInstance();
+  prefs.clear();
+  _auth.signOut();
+}
+
 Future<int> loginFirebase(String email, String pass) async{
   var _auth = FirebaseAuth.instance;
-
-  await FireStoreClass.getDetails(email:email);
   try {
+    await FireStoreClass.getDetails(email:email);
     var result = await _auth.signInWithEmailAndPassword(
         email: email, password: pass);
     var user = result.user;

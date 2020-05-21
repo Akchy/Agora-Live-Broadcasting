@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import './screen/Login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import './HomeScreen.dart';
 import './screen/splash.dart';
 
 void main() {
-  runApp(MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((_) {
+    runApp(new MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -13,10 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Kristie',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      title: 'Agora Live',
       home: MainScreen(),
     );
   }

@@ -3,7 +3,6 @@ import 'package:agora_rtm/agora_rtm.dart';
 import 'package:agorartm/screen/splash.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../utils/settings.dart';
 import 'package:wakelock/wakelock.dart';
 
@@ -27,7 +26,6 @@ class _JoinPageState extends State<JoinPage> {
   bool loading = true;
   bool completed = false;
   static final _users = <int>[];
-  static final user = <int>[];
   bool muted = true;
 
   bool _isLogin = true;
@@ -165,35 +163,11 @@ class _JoinPageState extends State<JoinPage> {
         ));
   }
 
-  /// Toolbar layout
-  Widget _toolbar() {
-    return Container(
-      alignment: Alignment.bottomCenter,
-      padding: const EdgeInsets.symmetric(vertical: 48),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          RawMaterialButton(
-            onPressed: () => _onCallEnd(context),
-            child: Icon(
-              Icons.call_end,
-              color: Colors.white,
-              size: 35.0,
-            ),
-            shape: CircleBorder(),
-            elevation: 2.0,
-            fillColor: Colors.redAccent,
-            padding: const EdgeInsets.all(15.0),
-          ),
-        ],
-      ),
-    );
-  }
 
   /// Info panel to show logs
   Widget _panel() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 48),
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
       alignment: Alignment.bottomCenter,
       child: FractionallySizedBox(
         heightFactor: 0.5,
@@ -209,10 +183,11 @@ class _JoinPageState extends State<JoinPage> {
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   vertical: 3,
-                  horizontal: 10,
+                  horizontal: 3,
                 ),
-                child: Row(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Flexible(
                       child: Container(
@@ -221,15 +196,15 @@ class _JoinPageState extends State<JoinPage> {
                           horizontal: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.yellowAccent,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(
                           _infoStrings[index],
-                          style: TextStyle(color: Colors.blueGrey),
+                          style: TextStyle(color: Colors.white, fontSize: 18),
                         ),
                       ),
-                    )
+                    ),
+
                   ],
                 ),
               );
@@ -240,65 +215,77 @@ class _JoinPageState extends State<JoinPage> {
     );
   }
 
-  bool pop = false;
-  Future<void> _showDialog() async {
-    // flutter defined function
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // return object of type Dialog
-        return AlertDialog(
-          title: Text('Alert Dialog title'),
-          content: Text('Alert Dialog body'),
-          actions: <Widget>[
-            // usually buttons at the bottom of the dialog
-            FlatButton(
-              child: Text("Don't"),
-              onPressed: () {
-                pop=false;
-                Navigator.of(context, rootNavigator: true).pop('dialog');
-              },
-            ),
-            FlatButton(
-              child: Text('Close'),
-              onPressed: () async {
-                await Wakelock.disable();
-                Navigator.of(context).pop();
-                pop = true;
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
-
-  void _onCallEnd(BuildContext context) async {
-    await _showDialog();
-    if(pop){
-      _logout();
-      _leaveChannel();
-      Navigator.pop(context);
-    }
-  }
   Future<bool> _willPopCallback() async {
-    await _showDialog();
-    if(pop) {
-      _logout();
-      _leaveChannel();
-      return true;
-    }// return true if the route to be popped
+    await Wakelock.disable();
+    _leaveChannel();
+    _logout();
+    return true;
+    // return true if the route to be popped
   }
 
   Widget _ending(){
-    return Center(
-      child: Text('The Live has ended\nThank you',
-        style: TextStyle(
-          fontSize: 25.0,letterSpacing: 1.5,
-          color: Colors.red[900],
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: Colors.black,
+      child: Center(
+        child: Text('The Live has ended\n\nThank you',
+          style: TextStyle(
+            fontSize: 25.0,letterSpacing: 1.5,
+            color: Colors.pinkAccent,
+          ),
+        )
+      ),
+    );
+  }
+
+  Widget _liveText(){
+    return Container(
+      alignment: Alignment.topRight,
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Container(
+          decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: <Color>[
+                  Colors.pink, Colors.red
+                ],
+              ),
+              borderRadius: BorderRadius.all(Radius.circular(8.0))
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5.0,horizontal: 8.0),
+                child: Text('LIVE',style: TextStyle(color: Colors.white,fontSize: 15,fontWeight: FontWeight.bold),),
+              ),
+            ],
+          ),
         ),
-      )
+      ),
+    );
+  }
+
+  Widget _username(){
+    return Padding(
+      padding: const EdgeInsets.all(15.0),
+      child: Container(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5.0,horizontal: 8.0),
+              child: Text('${widget.channelName}',style: TextStyle(color: Colors.white,fontSize: 20,fontStyle: FontStyle.italic),),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -306,19 +293,18 @@ class _JoinPageState extends State<JoinPage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-        child:Scaffold(
-          appBar: AppBar(
-            title: Text("${widget.channelName}'s Live"),
-          ),
-          backgroundColor: Colors.black,
-          body: Center(
-            child: (completed==true)?_ending():Stack(
-              children: <Widget>[
-                _viewRows(),
-                _toolbar(),
-                _buildSendChannelMessage(),
-                _panel(),
-              ],
+        child:SafeArea(
+          child: Scaffold(
+            body: Center(
+              child: (completed==true)?_ending():Stack(
+                children: <Widget>[
+                  _viewRows(),
+                  _username(),
+                  _liveText(),
+                  _buildSendChannelMessage(),
+                  _panel(),
+                ],
+              ),
             ),
           ),
         ),
@@ -332,16 +318,58 @@ class _JoinPageState extends State<JoinPage> {
     if (!_isLogin || !_isInChannel) {
       return Container();
     }
-    return Row(children: <Widget>[
-      new Expanded(
-          child: new TextField(
-              controller: _channelMessageController,
-              decoration: InputDecoration(hintText: 'Input channel message'))),
-      new OutlineButton(
-        child: Text('Send to Channel', style: textStyle),
-        onPressed: _toggleSendChannelMessage,
-      )
-    ]);
+    return Container(
+      alignment: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 18.0,),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              new Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10.0,0,0,0),
+                    child: new TextField(
+                        cursorColor: Colors.red,
+                        textInputAction: TextInputAction.go,
+                        onSubmitted: _sendMessage,
+                        style: TextStyle(color: Colors.white),
+                        controller: _channelMessageController,
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: InputDecoration(
+                          hintText: 'Comment',
+                          hintStyle: TextStyle(color: Colors.white),
+                          enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide(color: Colors.white)
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide(color: Colors.white)
+                          ),
+                        )
+                    ),
+                  )
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8.0, 0, 4.0, 0),
+                child: MaterialButton(
+                  minWidth: 0,
+                  onPressed: _toggleSendChannelMessage,
+                  child: Icon(
+                    Icons.send,
+                    color: Colors.white,
+                    size: 20.0,
+                  ),
+                  shape: CircleBorder(),
+                  elevation: 2.0,
+                  color: Colors.pinkAccent[400],
+                  padding: const EdgeInsets.all(12.0),
+                ),
+              ),
+            ]
+        ),
+      ),
+    );
   }
 
   void _logout() async {
@@ -352,8 +380,6 @@ class _JoinPageState extends State<JoinPage> {
       _log('Logout error: ' + errorCode.toString());
     }
   }
-
-  static TextStyle textStyle = TextStyle(fontSize: 18, color: Colors.blue);
 
 
   void _leaveChannel() async {
@@ -374,8 +400,22 @@ class _JoinPageState extends State<JoinPage> {
       return;
     }
     try {
+      _channelMessageController.clear();
       await _channel.sendMessage(AgoraRtmMessage.fromText(text));
-      _log('test: $text');
+      _log('${widget.username}: $text');
+    } catch (errorCode) {
+      _log('Send channel message error: ' + errorCode.toString());
+    }
+  }
+
+  void _sendMessage(text) async {
+    if (text.isEmpty) {
+      return;
+    }
+    try {
+      _channelMessageController.clear();
+      await _channel.sendMessage(AgoraRtmMessage.fromText(text));
+      _log('${widget.username}: $text');
     } catch (errorCode) {
       _log('Send channel message error: ' + errorCode.toString());
     }
@@ -406,9 +446,6 @@ class _JoinPageState extends State<JoinPage> {
     channel.onMemberJoined = (AgoraRtmMember member) {
       _log(
           'Member joined: ' + member.userId);
-    };
-    channel.onMemberLeft = (AgoraRtmMember member) {
-      _log('Member left: ' + member.userId + ', channel: ' + member.channelId);
     };
     channel.onMessageReceived =
         (AgoraRtmMessage message, AgoraRtmMember member) {

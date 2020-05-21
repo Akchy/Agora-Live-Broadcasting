@@ -19,7 +19,7 @@ class CallPage extends StatefulWidget {
 
 class _CallPageState extends State<CallPage> {
   static final _users = <int>[];
-  String channel_name;
+  String channelName;
 
   bool muted = false;
   bool _isLogin = true;
@@ -78,15 +78,14 @@ class _CallPageState extends State<CallPage> {
     ) async{
 
       final documentId = widget.channelName;
-      channel_name= documentId;
-      await FireStoreClass.createLiveUser(name: documentId,id: uid);
+      channelName= documentId;
+      FireStoreClass.createLiveUser(name: documentId,id: uid);
       // The above line create a document in the firestore with username as documentID
 
       await Wakelock.enable();
       // This is used for Keeping the device awake. Its now enabled
 
       setState(() {
-        final info = 'onJoinChannel: $channel, uid: $uid';
       });
     };
 
@@ -98,14 +97,12 @@ class _CallPageState extends State<CallPage> {
 
     AgoraRtcEngine.onUserJoined = (int uid, int elapsed) {
       setState(() {
-        final info = 'userJoined: $uid';
         _users.add(uid);
       });
     };
 
     AgoraRtcEngine.onUserOffline = (int uid, int reason) {
       setState(() {
-        final info = 'userOffline: $uid';
         _users.remove(uid);
       });
     };
@@ -144,59 +141,12 @@ class _CallPageState extends State<CallPage> {
         ));
   }
 
-  /// Toolbar layout
-  Widget _toolbar() {
-    return Container(
-      alignment: Alignment.bottomCenter,
-      padding: const EdgeInsets.symmetric(vertical: 48),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          RawMaterialButton(
-            onPressed: _onToggleMute,
-            child: Icon(
-              muted ? Icons.mic_off : Icons.mic,
-              color: muted ? Colors.white : Colors.blueAccent,
-              size: 20.0,
-            ),
-            shape: CircleBorder(),
-            elevation: 2.0,
-            fillColor: muted ? Colors.blueAccent : Colors.white,
-            padding: const EdgeInsets.all(12.0),
-          ),
-          RawMaterialButton(
-            onPressed: () => _onCallEnd(context),
-            child: Icon(
-              Icons.call_end,
-              color: Colors.white,
-              size: 35.0,
-            ),
-            shape: CircleBorder(),
-            elevation: 2.0,
-            fillColor: Colors.redAccent,
-            padding: const EdgeInsets.all(15.0),
-          ),
-          RawMaterialButton(
-            onPressed: _onSwitchCamera,
-            child: Icon(
-              Icons.switch_camera,
-              color: Colors.blueAccent,
-              size: 20.0,
-            ),
-            shape: CircleBorder(),
-            elevation: 2.0,
-            fillColor: Colors.white,
-            padding: const EdgeInsets.all(12.0),
-          )
-        ],
-      ),
-    );
-  }
+
 
   /// Info panel to show logs
   Widget _panel() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 48),
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
       alignment: Alignment.bottomCenter,
       child: FractionallySizedBox(
         heightFactor: 0.5,
@@ -212,10 +162,11 @@ class _CallPageState extends State<CallPage> {
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   vertical: 3,
-                  horizontal: 10,
+                  horizontal: 3,
                 ),
-                child: Row(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Flexible(
                       child: Container(
@@ -224,15 +175,15 @@ class _CallPageState extends State<CallPage> {
                           horizontal: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.yellowAccent,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(
                           _infoStrings[index],
-                          style: TextStyle(color: Colors.blueGrey),
+                          style: TextStyle(color: Colors.white, fontSize: 18),
                         ),
                       ),
-                    )
+                    ),
+
                   ],
                 ),
               );
@@ -283,8 +234,7 @@ class _CallPageState extends State<CallPage> {
     if(pop){
       _logout();
       _leaveChannel();
-      FireStoreClass.deleteUser(username: channel_name);
-      //await Firestore.instance.collection('liveuser').document(channel_name).delete();
+      FireStoreClass.deleteUser(username: channelName);
       Navigator.pop(context);
     }
   }
@@ -305,29 +255,72 @@ class _CallPageState extends State<CallPage> {
     if(pop) {
       _logout();
       _leaveChannel();
-      FireStoreClass.deleteUser(username: channel_name);
+      FireStoreClass.deleteUser(username: channelName);
       //await Firestore.instance.collection('liveuser').document(channel_name).delete();
       return true;
-    }// return true if the route to be popped
+    }
+    return false;// return true if the route to be popped
   }
 
+  Widget _endCall(){
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          RawMaterialButton(
+            onPressed: () => _onCallEnd(context),
+            elevation: 2.0,
+            padding: const EdgeInsets.all(15.0),
+            child: Text('END',style: TextStyle(color: Colors.pink,fontSize: 20,fontWeight: FontWeight.bold),),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _liveText(){
+    return Padding(
+      padding: const EdgeInsets.all(15.0),
+      child: Container(
+        decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: <Color>[
+                Colors.pink, Colors.red
+              ],
+            ),
+            borderRadius: BorderRadius.all(Radius.circular(8.0))
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5.0,horizontal: 8.0),
+              child: Text('LIVE',style: TextStyle(color: Colors.white,fontSize: 15,fontWeight: FontWeight.bold),),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-        child:Scaffold(
-          appBar: AppBar(
-            title: Text("${widget.channelName}'s Live"),
-          ),
-          backgroundColor: Colors.black,
-          body: Center(
-            child: Stack(
-              children: <Widget>[
-                _viewRows(),
-                _toolbar(),
-                _buildSendChannelMessage(),
-                _panel(),
-              ],
+        child:SafeArea(
+          child: Scaffold(
+            body: Center(
+              child: Stack(
+                children: <Widget>[
+                  _viewRows(),// Video Widget
+                  _endCall(),
+                  _liveText(),
+                  _buildSendChannelMessage(), // send message
+                  _panel(), // view message
+                ],
+              ),
             ),
           ),
         ),
@@ -340,16 +333,90 @@ class _CallPageState extends State<CallPage> {
     if (!_isLogin || !_isInChannel) {
       return Container();
     }
-    return Row(children: <Widget>[
-      new Expanded(
-          child: new TextField(
-              controller: _channelMessageController,
-              decoration: InputDecoration(hintText: 'Input channel message'))),
-      new OutlineButton(
-        child: Text('Send to Channel', style: textStyle),
-        onPressed: _toggleSendChannelMessage,
-      )
-    ]);
+    return Container(
+      alignment: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 18.0,),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            new Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10.0,0,0,0),
+                  child: new TextField(
+                    cursorColor: Colors.red,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: _sendMessage,
+                    style: TextStyle(color: Colors.white),
+                    controller: _channelMessageController,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      hintText: 'Comment',
+                      hintStyle: TextStyle(color: Colors.white),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(color: Colors.white)
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(color: Colors.white)
+                      ),
+                    )
+                  ),
+                )
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8.0, 0, 4.0, 0),
+              child: MaterialButton(
+                minWidth: 0,
+                onPressed: _toggleSendChannelMessage,
+                child: Icon(
+                  Icons.send,
+                  color: Colors.white,
+                  size: 20.0,
+                ),
+                shape: CircleBorder(),
+                elevation: 2.0,
+                color: Colors.pinkAccent[400],
+                padding: const EdgeInsets.all(12.0),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4.0, 0, 4.0, 0),
+              child: MaterialButton(
+                minWidth: 0,
+                onPressed: _onToggleMute,
+                child: Icon(
+                  muted ? Icons.mic_off : Icons.mic,
+                  color: muted ? Colors.white : Colors.pinkAccent[400],
+                  size: 20.0,
+                ),
+                shape: CircleBorder(),
+                elevation: 2.0,
+                color: muted ? Colors.pinkAccent[400] : Colors.white,
+                padding: const EdgeInsets.all(12.0),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4.0, 0, 8.0, 0),
+              child: MaterialButton(
+                minWidth: 0,
+                onPressed: _onSwitchCamera,
+                child: Icon(
+                  Icons.switch_camera,
+                  color: Colors.pinkAccent[400],
+                  size: 20.0,
+                ),
+                shape: CircleBorder(),
+                elevation: 2.0,
+                color: Colors.white,
+                padding: const EdgeInsets.all(12.0),
+              ),
+            )
+          ]
+        ),
+      ),
+    );
   }
 
   void _logout() async {
@@ -361,7 +428,6 @@ class _CallPageState extends State<CallPage> {
     }
   }
 
-  static TextStyle textStyle = TextStyle(fontSize: 18, color: Colors.blue);
 
 
   void _leaveChannel() async {
@@ -382,8 +448,22 @@ class _CallPageState extends State<CallPage> {
       return;
     }
     try {
+      _channelMessageController.clear();
       await _channel.sendMessage(AgoraRtmMessage.fromText(text));
-      _log('test: $text');
+      _log('${widget.channelName}: $text');
+    } catch (errorCode) {
+      _log('Send channel message error: ' + errorCode.toString());
+    }
+  }
+
+  void _sendMessage(text) async {
+    if (text.isEmpty) {
+      return;
+    }
+    try {
+      _channelMessageController.clear();
+      await _channel.sendMessage(AgoraRtmMessage.fromText(text));
+      _log('${widget.channelName}: $text');
     } catch (errorCode) {
       _log('Send channel message error: ' + errorCode.toString());
     }
@@ -414,9 +494,6 @@ class _CallPageState extends State<CallPage> {
     channel.onMemberJoined = (AgoraRtmMember member) {
       _log(
           'Member joined: ' + member.userId);
-    };
-    channel.onMemberLeft = (AgoraRtmMember member) {
-      _log('Member left: ' + member.userId + ', channel: ' + member.channelId);
     };
     channel.onMessageReceived =
         (AgoraRtmMessage message, AgoraRtmMember member) {
