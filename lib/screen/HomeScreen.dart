@@ -1,20 +1,20 @@
 import 'dart:async';
 
 import 'package:agorartm/firebaseDB/auth.dart';
-import 'package:agorartm/src/pages/join.dart';
+import 'package:agorartm/screen/agora/join.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './host.dart';
+import 'agora/host.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 
-class IndexPage extends StatefulWidget {
+class HomeScreen extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => IndexState();
+  State<StatefulWidget> createState() => HomeScreenState();
 }
 
-class IndexState extends State<IndexPage> {
+class HomeScreenState extends State<HomeScreen> {
   /// create a channelController to retrieve text value
   final _channelController = TextEditingController();
   int channel;

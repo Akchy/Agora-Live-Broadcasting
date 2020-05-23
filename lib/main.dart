@@ -1,8 +1,9 @@
+import 'package:agorartm/screen/HomeScreen.dart';
+import 'package:agorartm/screen/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import './screen/Login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import './HomeScreen.dart';
 import './screen/splash.dart';
 
 void main() {
@@ -25,6 +26,23 @@ class MyApp extends StatelessWidget {
 }
 
 class MainScreen extends StatelessWidget {
+
+  MaterialColor blackColor = const MaterialColor(
+      0xFF000000,
+      const <int, Color>{
+        50: const Color(0xFF000000),
+        100: const Color(0xFF000000),
+        200: const Color(0xFF000000),
+        300: const Color(0xFF000000),
+        400: const Color(0xFF000000),
+        500: const Color(0xFF000000),
+        600: const Color(0xFF000000),
+        700: const Color(0xFF000000),
+        800: const Color(0xFF000000),
+        900: const Color(0xFF000000),
+      },
+  );
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
@@ -34,7 +52,13 @@ class MainScreen extends StatelessWidget {
           {return SplashPage();}
         if (!snapshot.hasData || snapshot.data == null)
           {return Login();}
-        return HomeScreen();
+        return MaterialApp(
+          title: 'Agora Live',
+          theme: ThemeData(
+            primarySwatch: blackColor,
+          ),
+          home: HomePage(),
+        );
       },
     );
   }

@@ -14,6 +14,7 @@ class SplashPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 CircularProgressIndicator(
+                  valueColor: new AlwaysStoppedAnimation<Color>(Colors.purple),
                   backgroundColor: Colors.white,
                 ),
                 const SizedBox(height: 10.0),
