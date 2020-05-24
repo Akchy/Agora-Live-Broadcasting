@@ -76,6 +76,9 @@ flutter:
     - family: Oswald
       fonts:
         - asset: assets/fonts/Oswald-Regular.ttf
+    - family: Billabong
+      fonts:
+        - asset: assets/fonts/Billabong.ttf
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

@@ -1,13 +1,16 @@
 import 'package:agorartm/firebaseDB/auth.dart';
 import 'package:agorartm/models/live.dart';
-import 'package:agorartm/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/global.dart';
 import '../models/post.dart';
+import 'agora/host.dart';
+import 'agora/join.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -20,6 +23,8 @@ class _HomePageState extends State<HomePage> {
   List<Live> list =[];
   bool ready =false;
   Live liveUser;
+  var name;
+  var username;
 
   @override
   Widget build(BuildContext context) {
@@ -30,14 +35,24 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    liveUser = new Live(username: 'davish',me: true,image: 'https://www.hindustantimes.com/rf/image_size_1200x900/HT/p2/2019/09/25/Pictures/_115e3b3a-df82-11e9-b0cd-667d8786d605.jpg');
+    loadSharedPref();
+    list = [];
+    liveUser = new Live(username: name,me: true,image: 'https://www.hindustantimes.com/rf/image_size_1200x900/HT/p2/2019/09/25/Pictures/_115e3b3a-df82-11e9-b0cd-667d8786d605.jpg');
     list.add(liveUser);
-    loadLiveUsers();
     dbChangeListen();
     /*var date = DateTime.now();
     var newDate = '${DateFormat("dd-MM-yyyy hh:mm:ss").format(date)}';
     print('akchy: $newDate');*/
   }
+
+  Future<void> loadSharedPref() async{
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      name = prefs.getString('name') ?? 'Jon Doe';
+      username = prefs.getString('username') ?? 'jon';
+    });
+  }
+
   void dbChangeListen(){
     databaseReference.collection('liveuser').orderBy("name",descending: true)
         .snapshots()
@@ -47,30 +62,14 @@ class _HomePageState extends State<HomePage> {
         list = [];
         list.add(new Live(username: 'davish',me: true,image: 'https://www.hindustantimes.com/rf/image_size_1200x900/HT/p2/2019/09/25/Pictures/_115e3b3a-df82-11e9-b0cd-667d8786d605.jpg'));
       });
-
       result.documents.forEach((result) {
         setState(() {
-          list.add(new Live(username: result.data['name'],image: result.data['image'],me: false));
+          list.add(new Live(username: result.data['name'],image: result.data['image'],channelId:result.data['channel'],me: false));
 
         });
       });
     });
 
-  }
-
-
-  Future<void> loadLiveUsers() async {
-    await databaseReference
-        .collection('liveuser').orderBy("name",descending: true)
-        .getDocuments()
-        .then((QuerySnapshot snapshot) {
-      snapshot.documents.forEach((f) {
-        list.add(new Live(username: f.data['name'],image: f.data['image'],me: false));
-      });
-    });
-    setState(() {
-      ready = true;
-    });
   }
 
 
@@ -155,9 +154,11 @@ class _HomePageState extends State<HomePage> {
                 onTap: (){
                   if(users.me==true){
                     //TODO: Add host function
+                    onCreate();
                   }
                   else{
                     // TODO: Add join function
+                    onJoin(channelName: users.username,channelId: users.channelId,username: name);
                   }
                 },
                 child: Stack(
@@ -309,9 +310,9 @@ class _HomePageState extends State<HomePage> {
                       margin: EdgeInsets.only(right: 10),
                       height: 30,
                       width: 30,
-                      child: CircleAvatar(backgroundImage: post.user.profilePicture,),
+                      child: CircleAvatar(backgroundImage: AssetImage(post.userPic),),
                     ),
-                    Text(post.user.username,style: TextStyle(color: Colors.white),)
+                    Text(post.user,style: TextStyle(color: Colors.white),)
                   ],
                 ),
                 IconButton(
@@ -328,9 +329,7 @@ class _HomePageState extends State<HomePage> {
             onDoubleTap: () {
               setState(() {
                 userPosts[index].isLiked = post.isLiked ? true : true;
-                if (!post.isLiked) {
-                  post.likes.add(user);
-                }
+
               });
             },
             child: Container(
@@ -357,11 +356,6 @@ class _HomePageState extends State<HomePage> {
                         onTap: (){
                           setState(() {
                             userPosts[index].isLiked = post.isLiked ? false : true;
-                            if (!post.isLiked) {
-                              post.likes.remove(user);
-                            } else {
-                              post.likes.add(user);
-                            }
                           });
                         },
                         child: Icon(
@@ -377,11 +371,7 @@ class _HomePageState extends State<HomePage> {
                       onTap: (){
                         setState(() {
                           userPosts[index].isLiked = post.isLiked ? false : true;
-                          if (!post.isLiked) {
-                            post.likes.remove(user);
-                          } else {
-                            post.likes.add(user);
-                          }
+
                         });
                       },
                         child: Icon(
@@ -394,44 +384,20 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(left: 13),
-                    child: GestureDetector(
-                        onTap: (){
-                          setState(() {
-                            userPosts[index].isLiked = post.isLiked ? false : true;
-                            if (!post.isLiked) {
-                              post.likes.remove(user);
-                            } else {
-                              post.likes.add(user);
-                            }
-                          });
-                        },
-                        child: Icon(
-                          FontAwesomeIcons.comment,
-                          size: 25,
+                    child: Icon(
+                      FontAwesomeIcons.comment,
+                      size: 25,
 
-                          color: Colors.white,
-                        )
+                      color: Colors.white,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(left: 13),
-                    child: GestureDetector(
-                        onTap: (){
-                          setState(() {
-                            userPosts[index].isLiked = post.isLiked ? false : true;
-                            if (!post.isLiked) {
-                              post.likes.remove(user);
-                            } else {
-                              post.likes.add(user);
-                            }
-                          });
-                        },
-                        child: Icon(
-                          FontAwesomeIcons.paperPlane,
-                          size: 23,
+                    child: Icon(
+                      FontAwesomeIcons.paperPlane,
+                      size: 23,
 
-                          color: Colors.white,
-                        )
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -458,7 +424,7 @@ class _HomePageState extends State<HomePage> {
               Container(
                 margin: EdgeInsets.only(left: 15, right: 10),
                 child: Text(
-                  post.user.username,
+                  post.user,
                   style: textStyleBold,
                 ),
               ),
@@ -475,59 +441,44 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget getLikes(List<User> likes) {
-    List<Widget> likers = [];
-    for (User follower in likes) {
-      likers.add(new Container(
-        height: 45,
-        padding: EdgeInsets.all(10),
-        child: FlatButton(
-          child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(follower.username, style: textStyleBold),
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(width: 1, color: Colors.grey),
-                borderRadius: BorderRadius.all(Radius.circular(3))
-              ),
-              child: FlatButton(
-                color: user.following.contains(follower) ? Colors.white : Colors.blue,
-                child: Text(user.following.contains(follower) ? "Following" : "Follow", style: TextStyle(fontWeight: FontWeight.bold, color: user.following.contains(follower) ? Colors.grey : Colors.white)),
-                onPressed: () {
-                  setState(() {
-                    if (user.following.contains(follower)) {
-                      user.following.remove(follower);
-                    } else {
-                      user.following.add(follower);
-                    }
-                  });
-                },
-              ),
-            )
-          ],
+  Future<void> onJoin({channelName,channelId, username}) async {
+    // update input validation
+    if (channelName.isNotEmpty) {
+      // push video page with given channel name
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => JoinPage(
+            channelName: channelName,
+            channelId: channelId,
+            username: username,
+          ),
         ),
-        onPressed: () {
-
-        },
-        )
-      ));
+      );
     }
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Likes", style: textStyleBold),
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.black,),
-          onPressed: () {},
-        ),
-      ),
-      body: Container(
-        child: ListView(
-          children: likers,
+  }
+
+
+  Future<void> onCreate() async {
+    // await for camera and mic permissions before pushing video page
+    await _handleCameraAndMic();
+    // push video page with given channel name
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CallPage(
+          channelName: username,
         ),
       ),
     );
+
   }
+
+
+  Future<void> _handleCameraAndMic() async {
+    await PermissionHandler().requestPermissions(
+      [PermissionGroup.camera, PermissionGroup.microphone],
+    );
+  }
+
 }

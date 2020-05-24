@@ -1,5 +1,6 @@
-import 'package:agorartm/screen/HomeScreen.dart';
+
 import 'package:agorartm/screen/home.dart';
+import 'package:agorartm/screen/loginScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import './screen/Login.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
 
 class MainScreen extends StatelessWidget {
 
-  MaterialColor blackColor = const MaterialColor(
+  final MaterialColor blackColor = const MaterialColor(
       0xFF000000,
       const <int, Color>{
         50: const Color(0xFF000000),
@@ -51,7 +52,7 @@ class MainScreen extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting)
           {return SplashPage();}
         if (!snapshot.hasData || snapshot.data == null)
-          {return Login();}
+          {return LoginScreen();}
         return MaterialApp(
           title: 'Agora Live',
           theme: ThemeData(
