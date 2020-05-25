@@ -41,6 +41,7 @@ dependencies:
   cached_network_image: 2.2.0+1
   firebase_storage: 3.1.5
   firebase_core: 0.4.4
+  gradient_text: 1.0.2
   image_picker: ^0.6.1
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -87,6 +88,6 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
 flutter_icons:
-  image_path: "assets/images/logo.png"
+  image_path: "assets/images/instaLogo.png"
   android: true
   ios: true

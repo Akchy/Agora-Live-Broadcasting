@@ -53,7 +53,6 @@ class FireStoreClass{
       await prefs.setString('email', email);
       await prefs.setString('image', fileURL);
 
-      print('Xperion 3');
       await _db.collection(userCollection).document(username).setData({
         'name': name,
         'email': email,

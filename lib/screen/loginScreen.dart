@@ -1,6 +1,7 @@
 import 'package:agorartm/firebaseDB/auth.dart';
 import 'package:agorartm/screen/regScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
 
@@ -39,6 +40,13 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           submitted=false;
         });
+        break;
+      case 1:
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('login', true);
+        print('Xperion');
+        Navigator.popUntil(context, ModalRoute.withName('/'));
+        break;
     }
 
   }

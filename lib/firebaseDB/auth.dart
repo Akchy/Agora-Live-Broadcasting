@@ -53,9 +53,7 @@ Future<int> registerUser({email, name, pass, username, image}) async{
     info.photoUrl = '/';
 
     await user.updateProfile(info);
-    print('xperion 1 ');
     await FireStoreClass.regUser(name: name,email: email,username: username,image: image);
-    print('xperion 2');
     return 1;
   }
   catch(e){

@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegScreen extends StatefulWidget {
   static final String id = 'login_screen';
@@ -48,7 +49,10 @@ class _RegScreenState extends State<RegScreen> {
     var result = await registerUser(email: email, name: name, username: username, pass: pass,image: _image);
     switch(result) {
       case 1:
-        Navigator.pop(context);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('login', true);
+        print('Xperion');
+        Navigator.popUntil(context, ModalRoute.withName('/'));
         break;
       case -1:
         usernameError();

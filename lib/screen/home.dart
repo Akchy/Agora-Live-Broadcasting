@@ -46,18 +46,15 @@ class _HomePageState extends State<HomePage> {
     dbChangeListen();
     /*var date = DateTime.now();
     var newDate = '${DateFormat("dd-MM-yyyy hh:mm:ss").format(date)}';
-    print('akchy: $newDate');*/
+    */
   }
 
   Future<void> loadSharedPref() async{
-    print('xperion 4');
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      print('$name, $username, trolk');
       name = prefs.getString('name') ?? 'Jon Doe';
       username = prefs.getString('username') ?? 'jon';
       image = prefs.getString('image') ?? 'https://nichemodels.co/wp-content/uploads/2019/03/user-dummy-pic.png';
-      print('$name, $username, ${prefs.getString('image')}');
     });
   }
 

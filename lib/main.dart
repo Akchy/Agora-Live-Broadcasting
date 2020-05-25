@@ -1,10 +1,10 @@
 
+import 'package:agorartm/screen/SplashScreen.dart';
 import 'package:agorartm/screen/home.dart';
 import 'package:agorartm/screen/loginScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import './screen/Loading.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,13 +19,37 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Agora Live',
-      home: MainScreen(),
+      title: 'Instagram Live',
+      home: SplashScreen(),
+      routes: <String, WidgetBuilder>{
+        '/HomeScreen': (BuildContext context) => new MainScreen()
+      },
     );
   }
 }
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
+
+  @override
+  _MainScreenState createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+
+  var loggedIn=false;
+  @override
+  void initState() {
+    super.initState();
+    loadSharedPref();
+  }
+
+  void loadSharedPref() async{
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      loggedIn = prefs.getBool('login') ?? false;
+    });
+  }
 
   final MaterialColor blackColor = const MaterialColor(
       0xFF000000,
@@ -45,22 +69,10 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: FirebaseAuth.instance.onAuthStateChanged,
-      builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
-          {return LoadingPage();}
-        if (!snapshot.hasData || snapshot.data == null)
-          {return LoginScreen();}
-        return MaterialApp(
-          title: 'Agora Live',
-          theme: ThemeData(
-            primarySwatch: blackColor,
-          ),
-          home: HomePage(),
-        );
-      },
-    );
+    loadSharedPref();
+    return loggedIn? HomePage(): LoginScreen();
   }
+
+
 }
 
