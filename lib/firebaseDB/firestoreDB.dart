@@ -1,4 +1,8 @@
+
+import 'package:path/path.dart' as Path;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:async';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,24 +31,45 @@ class FireStoreClass{
 
   static Future<bool> checkUsername({username}) async{
     final snapShot = await _db.collection(userCollection).document(username).get();
+    //print('Xperion ${snapShot.exists} $username');
     if(snapShot.exists) {
       return false;
     }
     return true;
   }
 
-  static Future<void> regUser({name, email, username}) async{
-    await _db.collection(userCollection).document(username).setData({
-      'name': name,
-      'email': email,
-      'username': username,
+  static Future<void> regUser({name, email, username, image}) async{
+
+    StorageReference storageReference = FirebaseStorage.instance
+        .ref()
+        .child('$email/${Path.basename(image.path)}');
+    StorageUploadTask uploadTask = storageReference.putFile(image);
+    await uploadTask.onComplete;                                    //  Image Upload code
+
+    await storageReference.getDownloadURL().then((fileURL) async{   // To fetch the uploaded data's url
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('name', name);
+      await prefs.setString('username', username);
+      await prefs.setString('email', email);
+      await prefs.setString('image', fileURL);
+
+      print('Xperion 3');
+      await _db.collection(userCollection).document(username).setData({
+        'name': name,
+        'email': email,
+        'username': username,
+        'image': fileURL,
+      });
+      await _db.collection(emailCollection).document(email).setData({
+        'name': name,
+        'email': email,
+        'username': username,
+        'image': fileURL,
+      });
+      return true;
     });
-    await _db.collection(emailCollection).document(email).setData({
-      'name': name,
-      'email': email,
-      'username': username,
-    });
-    return true;
+
+
   }
 
   static void deleteUser({username}) async{
@@ -59,7 +84,7 @@ class FireStoreClass{
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('name', document.data['name']);
     await prefs.setString('username', document.data['username']);
-
-
+    await prefs.setString('image', document.data['image']);
   }
+
 }

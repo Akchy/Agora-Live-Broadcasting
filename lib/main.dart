@@ -3,9 +3,8 @@ import 'package:agorartm/screen/home.dart';
 import 'package:agorartm/screen/loginScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import './screen/Login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import './screen/splash.dart';
+import './screen/Loading.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +49,7 @@ class MainScreen extends StatelessWidget {
       stream: FirebaseAuth.instance.onAuthStateChanged,
       builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting)
-          {return SplashPage();}
+          {return LoadingPage();}
         if (!snapshot.hasData || snapshot.data == null)
           {return LoginScreen();}
         return MaterialApp(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-class SplashPage extends StatelessWidget {
+class LoadingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,7 +14,7 @@ class SplashPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 CircularProgressIndicator(
-                  valueColor: new AlwaysStoppedAnimation<Color>(Colors.purple),
+                  valueColor: new AlwaysStoppedAnimation<Color>(Colors.blue),
                   backgroundColor: Colors.white,
                 ),
                 const SizedBox(height: 10.0),

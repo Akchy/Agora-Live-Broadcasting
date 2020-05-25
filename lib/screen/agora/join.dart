@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:agora_rtm/agora_rtm.dart';
-import 'package:agorartm/screen/splash.dart';
+import 'package:agorartm/screen/Loading.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import '../../utils/settings.dart';
@@ -157,7 +157,7 @@ class _JoinPageState extends State<JoinPage> {
   Widget _viewRows() {
     final views = _getRenderViews();
     return (loading==true)&&(completed==false)?
-      SplashPage():Container(
+      LoadingPage():Container(
         child: Column(
           children: <Widget>[_videoView(views[0])],
         ));

@@ -34,14 +34,14 @@ void signOutGoogle() async{
   print('User Sign Out');
 }
 
-Future<int> registerUser(String email, String pass, String name, String username) async{
+Future<int> registerUser({email, name, pass, username, image}) async{
   var _auth= FirebaseAuth.instance;
   try{
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('name', name);
     await prefs.setString('username', username);
-    var userExists = await FireStoreClass.checkUsername();
-    if(!userExists) {
+    var userNameExists = await FireStoreClass.checkUsername(username: username);
+    if(!userNameExists) {
       return -1;
     }
     var result = await _auth.createUserWithEmailAndPassword(email: email, password: pass);
@@ -53,7 +53,9 @@ Future<int> registerUser(String email, String pass, String name, String username
     info.photoUrl = '/';
 
     await user.updateProfile(info);
-    await FireStoreClass.regUser(name: name,email: email,username: username);
+    print('xperion 1 ');
+    await FireStoreClass.regUser(name: name,email: email,username: username,image: image);
+    print('xperion 2');
     return 1;
   }
   catch(e){
@@ -103,10 +105,10 @@ Future<int> loginFirebase(String email, String pass) async{
   catch(e)
   {
     switch (e.code) {
-      case 'ERROR_INVALID_EMAIL':
+      case 'ERROR_WRONG_PASSWORD':
         return -1;
         break;
-      case 'ERROR_WRONG_PASSWORD':
+      case 'ERROR_INVALID_EMAIL':
         return -2;
         break;
       case 'ERROR_USER_NOT_FOUND':

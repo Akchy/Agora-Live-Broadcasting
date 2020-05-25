@@ -1,5 +1,6 @@
 import 'package:agorartm/firebaseDB/auth.dart';
 import 'package:agorartm/models/live.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -24,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   bool ready =false;
   Live liveUser;
   var name;
+  var image ='https://firebasestorage.googleapis.com/v0/b/agora-live.appspot.com/o/image_picker851081157.jpg?alt=media&token=6d134771-7887-452c-8a48-8a52e3e1614f';
   var username;
 
   @override
@@ -37,8 +39,10 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     loadSharedPref();
     list = [];
-    liveUser = new Live(username: name,me: true,image: 'https://www.hindustantimes.com/rf/image_size_1200x900/HT/p2/2019/09/25/Pictures/_115e3b3a-df82-11e9-b0cd-667d8786d605.jpg');
-    list.add(liveUser);
+    liveUser = new Live(username: name,me: true,image:image );
+    setState(() {
+      list.add(liveUser);
+    });
     dbChangeListen();
     /*var date = DateTime.now();
     var newDate = '${DateFormat("dd-MM-yyyy hh:mm:ss").format(date)}';
@@ -46,10 +50,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> loadSharedPref() async{
+    print('xperion 4');
     final prefs = await SharedPreferences.getInstance();
     setState(() {
+      print('$name, $username, trolk');
       name = prefs.getString('name') ?? 'Jon Doe';
       username = prefs.getString('username') ?? 'jon';
+      image = prefs.getString('image') ?? 'https://nichemodels.co/wp-content/uploads/2019/03/user-dummy-pic.png';
+      print('$name, $username, ${prefs.getString('image')}');
     });
   }
 
@@ -60,7 +68,8 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {
         list = [];
-        list.add(new Live(username: 'davish',me: true,image: 'https://www.hindustantimes.com/rf/image_size_1200x900/HT/p2/2019/09/25/Pictures/_115e3b3a-df82-11e9-b0cd-667d8786d605.jpg'));
+        liveUser = new Live(username: name,me: true,image:image );
+        list.add(liveUser);
       });
       result.documents.forEach((result) {
         setState(() {
@@ -153,11 +162,11 @@ class _HomePageState extends State<HomePage> {
               child: GestureDetector(
                 onTap: (){
                   if(users.me==true){
-                    //TODO: Add host function
+                    // Host function
                     onCreate();
                   }
                   else{
-                    // TODO: Add join function
+                    // Join function
                     onJoin(channelName: users.username,channelId: users.channelId,username: name);
                   }
                 },
@@ -192,10 +201,16 @@ class _HomePageState extends State<HomePage> {
                     Container(
                       height: 52,
                       width: 52,
-                      child: CircleAvatar(
-                          backgroundImage: NetworkImage(users.image)
-                        //NetworkImage('https://firebasestorage.googleapis.com/v0/b/xperion-vxatbk.appspot.com/o/image_picker82875791.jpg?alt=media&token=09bf83c8-6d3b-4626-9058-85294f457b70'),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: NetworkImage(users.image),
+                        ),
                       ),
+                      //child: CircleAvatar(
+                        //  backgroundImage: NetworkImage(users.image)
+                        //NetworkImage('https://firebasestorage.googleapis.com/v0/b/xperion-vxatbk.appspot.com/o/image_picker82875791.jpg?alt=media&token=09bf83c8-6d3b-4626-9058-85294f457b70'),
+                      //),
                     ),
                     users.me ? Container(
                         height: 55,
@@ -278,7 +293,7 @@ class _HomePageState extends State<HomePage> {
               )
           ),
           SizedBox(height: 3,),
-          Text(users.username, style: textStyle)
+          Text(users.username ?? '', style: textStyle)
         ],
       ),
     );
