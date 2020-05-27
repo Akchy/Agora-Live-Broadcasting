@@ -2,6 +2,8 @@ import 'package:agorartm/firebaseDB/auth.dart';
 import 'package:agorartm/models/live.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flare_flutter/flare_actor.dart';
+import 'package:flare_flutter/flare_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -20,12 +22,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
+  final FlareControls flareControls = FlareControls();
   final databaseReference = Firestore.instance;
   List<Live> list =[];
   bool ready =false;
   Live liveUser;
   var name;
-  var image ='https://firebasestorage.googleapis.com/v0/b/agora-live.appspot.com/o/image_picker851081157.jpg?alt=media&token=6d134771-7887-452c-8a48-8a52e3e1614f';
+  var image ='https://nichemodels.co/wp-content/uploads/2019/03/user-dummy-pic.png';
   var username;
 
   @override
@@ -39,7 +42,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     loadSharedPref();
     list = [];
-    liveUser = new Live(username: name,me: true,image:image );
+    liveUser = new Live(username: username,me: true,image:image );
     setState(() {
       list.add(liveUser);
     });
@@ -59,13 +62,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   void dbChangeListen(){
-    databaseReference.collection('liveuser').orderBy("name",descending: true)
+    databaseReference.collection('liveuser').orderBy("time",descending: true)
         .snapshots()
         .listen((result) {   // Listens to update in appointment collection
 
       setState(() {
         list = [];
-        liveUser = new Live(username: name,me: true,image:image );
+        liveUser = new Live(username: username,me: true,image:image );
         list.add(liveUser);
       });
       result.documents.forEach((result) {
@@ -160,11 +163,11 @@ class _HomePageState extends State<HomePage> {
                 onTap: (){
                   if(users.me==true){
                     // Host function
-                    onCreate();
+                    onCreate(username: users.username, image: users.image);
                   }
                   else{
                     // Join function
-                    onJoin(channelName: users.username,channelId: users.channelId,username: name);
+                    onJoin(channelName: users.username,channelId: users.channelId,username: username, hostImage: users.image,userImage: image);
                   }
                 },
                 child: Stack(
@@ -195,19 +198,17 @@ class _HomePageState extends State<HomePage> {
                         backgroundColor: Colors.black,
                       ),
                     ),
-                    Container(
-                      height: 52,
-                      width: 52,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          image: NetworkImage(users.image),
+                    CachedNetworkImage(
+                      imageUrl: users.image,
+                      imageBuilder: (context, imageProvider) => Container(
+                        width: 52.0,
+                        height: 52.0,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                              image: imageProvider, fit: BoxFit.cover),
                         ),
                       ),
-                      //child: CircleAvatar(
-                        //  backgroundImage: NetworkImage(users.image)
-                        //NetworkImage('https://firebasestorage.googleapis.com/v0/b/xperion-vxatbk.appspot.com/o/image_picker82875791.jpg?alt=media&token=09bf83c8-6d3b-4626-9058-85294f457b70'),
-                      //),
                     ),
                     users.me ? Container(
                         height: 55,
@@ -341,19 +342,38 @@ class _HomePageState extends State<HomePage> {
             onDoubleTap: () {
               setState(() {
                 userPosts[index].isLiked = post.isLiked ? true : true;
-
               });
+              flareControls.play("like");
             },
-            child: Container(
-              constraints: BoxConstraints(
-                maxHeight: 280
+            child: Stack(
+              children: <Widget>[
+                Container(
+                constraints: BoxConstraints(
+                  maxHeight: 280
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  image: DecorationImage(
+                    image: post.image
+                  )
+                ),
               ),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                image: DecorationImage(
-                  image: post.image
-                )
-              ),
+                Container(
+                  width: double.infinity,
+                  height: 250,
+                  child: Center(
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: FlareActor(
+                        'assets/instagram_like.flr',
+                        controller: flareControls,
+                        animation: 'idle',
+                      ),
+                    ),
+                  ),
+                ),
+              ]
             ),
           ),
           Row(
@@ -453,7 +473,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> onJoin({channelName,channelId, username}) async {
+  Future<void> onJoin({channelName,channelId, username, hostImage, userImage}) async {
     // update input validation
     if (channelName.isNotEmpty) {
       // push video page with given channel name
@@ -464,6 +484,8 @@ class _HomePageState extends State<HomePage> {
             channelName: channelName,
             channelId: channelId,
             username: username,
+            hostImage: hostImage,
+            userImage: userImage,
           ),
         ),
       );
@@ -471,15 +493,19 @@ class _HomePageState extends State<HomePage> {
   }
 
 
-  Future<void> onCreate() async {
+  Future<void> onCreate({username, image}) async {
     // await for camera and mic permissions before pushing video page
     await _handleCameraAndMic();
+    var date = DateTime.now();
+    var currentTime = '${DateFormat("dd-MM-yyyy hh:mm:ss").format(date)}';
     // push video page with given channel name
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => CallPage(
           channelName: username,
+          time: currentTime ,
+          image: image,
         ),
       ),
     );

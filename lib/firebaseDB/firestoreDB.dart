@@ -13,19 +13,28 @@ class FireStoreClass{
   static final userCollection = 'users';
   static final emailCollection = 'user_email';
 
-  static void createLiveUser({name, id}) async{
+  static void createLiveUser({name, id, time,image}) async{
     final snapShot = await _db.collection(liveCollection).document(name).get();
     if(snapShot.exists){
       await _db.collection(liveCollection).document(name).updateData({
         'name': name,
-        'channel': id
+        'channel': id,
+        'time':time,
+        'image': image
       });
     } else {
       await _db.collection(liveCollection).document(name).setData({
         'name': name,
-        'channel': id
+        'channel': id,
+        'time':time,
+        'image': image
       });
     }
+  }
+
+  static Future<String> getImage ({username}) async{
+    final snapShot = await _db.collection(userCollection).document(username).get();
+    return snapShot.data['image'];
   }
 
 

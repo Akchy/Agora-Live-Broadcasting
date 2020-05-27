@@ -44,8 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
       case 1:
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('login', true);
-        print('Xperion');
-        Navigator.popUntil(context, ModalRoute.withName('/'));
+        Navigator.popUntil(context, ModalRoute.withName('/HomeScreen'));
         break;
     }
 

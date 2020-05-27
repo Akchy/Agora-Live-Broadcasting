@@ -11,11 +11,10 @@ class SplashScreen extends StatefulWidget{
 
 class _SplashScreenState extends State<SplashScreen> {
 
-  var image;
+  var image = Image.asset('assets/images/insta.png');
   @override
   void initState() {
     super.initState();
-    image = Image.asset('assets/images/agora.jpg');
     startTime();
 
   }
@@ -56,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     height: 80,
                     width: 80,
                     child: Center(
-                      child: Image.asset('assets/images/insta.png'),
+                      child: image,
                     ),
                   ),
                 ],

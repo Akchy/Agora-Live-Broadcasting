@@ -226,6 +226,7 @@ class _CallPageState extends State<CallPage> {
                         ),
                       ),
                       Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Padding(
                             padding: const  EdgeInsets.symmetric(
@@ -561,7 +562,7 @@ class _CallPageState extends State<CallPage> {
     try {
       _channelMessageController.clear();
       await _channel.sendMessage(AgoraRtmMessage.fromText(text));
-      _log(user: widget.channelName, info:text);
+      _log(user: widget.channelName, info:text,type: 'message');
     } catch (errorCode) {
      // _log('Send channel message error: ' + errorCode.toString());
     }
@@ -592,17 +593,25 @@ class _CallPageState extends State<CallPage> {
     channel.onMemberJoined = (AgoraRtmMember member) async {
       var img = await FireStoreClass.getImage(username: member.userId);
       userMap.putIfAbsent(member.userId, () => img);
-      if(member.userId!=widget.channelName) {
+      var len;
+      _channel.getMembers().then((value) {
+        len = value.length;
         setState(() {
-          userNo += 1;
+          userNo= len-1 ;
         });
-      }
+      });
+
       _log(info: 'Member joined: ',  user: member.userId,type: 'join');
     };
     channel.onMemberLeft = (AgoraRtmMember member) {
-      setState(() {
-        userNo-=1;
+      var len;
+      _channel.getMembers().then((value) {
+        len = value.length;
+        setState(() {
+          userNo= len-1 ;
+        });
       });
+
     };
     channel.onMessageReceived =
         (AgoraRtmMessage message, AgoraRtmMember member) {

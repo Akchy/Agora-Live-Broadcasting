@@ -1,13 +1,11 @@
+class Message {
 
-import 'package:flutter/material.dart';
-
-class Post {
-  AssetImage image;
-  String description;
+  String message;
+  String type;
   String user;
-  String userPic;
-  bool isLiked;
-  bool isSaved;
+  String image;
 
-  Post(this.image, this.user, this.userPic, this.description,  this.isLiked, this.isSaved);
+
+  Message({this.message, this.type,this.user,this.image});
+
 }

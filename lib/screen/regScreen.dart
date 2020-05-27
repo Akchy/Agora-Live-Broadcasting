@@ -51,8 +51,7 @@ class _RegScreenState extends State<RegScreen> {
       case 1:
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('login', true);
-        print('Xperion');
-        Navigator.popUntil(context, ModalRoute.withName('/'));
+        Navigator.popUntil(context, ModalRoute.withName('/HomeScreen'));
         break;
       case -1:
         usernameError();
@@ -243,7 +242,7 @@ class _RegScreenState extends State<RegScreen> {
                     width: double.infinity,
                     child: FlatButton(
                       onPressed: (){
-                        Navigator.popUntil(context, ModalRoute.withName(Navigator.defaultRouteName));
+                        Navigator.popUntil(context, ModalRoute.withName('/HomeScreen'));
                       },
                       child: Text('Log in to Existing Account',style: TextStyle(color: Colors.lightBlue[400]),),
                     ),
@@ -333,7 +332,7 @@ class _RegScreenState extends State<RegScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                   InkWell(
+                   GestureDetector(
                     onTap:() {
                       chooseFile();
                     },

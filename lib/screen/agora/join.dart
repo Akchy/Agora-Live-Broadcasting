@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'package:agora_rtm/agora_rtm.dart';
+import 'package:agorartm/firebaseDB/firestoreDB.dart';
+import 'package:agorartm/models/message.dart';
 import 'package:agorartm/screen/Loading.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../utils/settings.dart';
 import 'package:wakelock/wakelock.dart';
 
@@ -11,11 +15,13 @@ class JoinPage extends StatefulWidget {
   final String channelName;
   final int channelId;
   final String username;
+  final String hostImage;
+  final String userImage;
 
 
 
   /// Creates a call page with given channel name.
-  const JoinPage({Key key, this.channelName, this.channelId, this.username}) : super(key: key);
+  const JoinPage({Key key, this.channelName, this.channelId, this.username,this.hostImage,this.userImage}) : super(key: key);
 
 
   @override
@@ -27,13 +33,15 @@ class _JoinPageState extends State<JoinPage> {
   bool completed = false;
   static final _users = <int>[];
   bool muted = true;
+  int userNo = 0;
+  var userMap ;
 
   bool _isLogin = true;
   bool _isInChannel = true;
 
   final _channelMessageController = TextEditingController();
 
-  final _infoStrings = <String>[];
+  final _infoStrings = <Message>[];
 
   AgoraRtmClient _client;
   AgoraRtmChannel _channel;
@@ -54,6 +62,7 @@ class _JoinPageState extends State<JoinPage> {
     super.initState();
     // initialize agora sdk
     initialize();
+    userMap = {widget.username: widget.userImage};
     _createClient();
   }
 
@@ -89,7 +98,6 @@ class _JoinPageState extends State<JoinPage> {
       Wakelock.enable();
     };
 
-
     AgoraRtcEngine.onUserJoined = (int uid, int elapsed) {
       setState(() {
         _users.add(uid);
@@ -97,8 +105,6 @@ class _JoinPageState extends State<JoinPage> {
     };
 
     AgoraRtcEngine.onUserOffline = (int uid, int reason) {
-
-
         if(uid==widget.channelId){
           setState(() {
             completed=true;
@@ -183,30 +189,95 @@ class _JoinPageState extends State<JoinPage> {
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   vertical: 3,
-                  horizontal: 3,
+                  horizontal: 10,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Flexible(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 2,
-                          horizontal: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Text(
-                          _infoStrings[index],
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+                child: (_infoStrings[index].type=='join')? Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      CachedNetworkImage(
+                        imageUrl: _infoStrings[index].image,
+                        imageBuilder: (context, imageProvider) => Container(
+                          width: 32.0,
+                          height: 32.0,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                                image: imageProvider, fit: BoxFit.cover),
+                          ),
                         ),
                       ),
-                    ),
-
-                  ],
-                ),
+                      Padding(
+                        padding: const  EdgeInsets.symmetric(
+                          horizontal: 8,
+                        ),
+                        child: Text(
+                          '${_infoStrings[index].user} joined',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ):
+                (_infoStrings[index].type=='message')?
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      CachedNetworkImage(
+                        imageUrl: _infoStrings[index].image,
+                        imageBuilder: (context, imageProvider) => Container(
+                          width: 32.0,
+                          height: 32.0,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                                image: imageProvider, fit: BoxFit.cover),
+                          ),
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Padding(
+                            padding: const  EdgeInsets.symmetric(
+                              horizontal: 8,
+                            ),
+                            child: Text(
+                              _infoStrings[index].user,
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 5,),
+                          Padding(
+                            padding: const  EdgeInsets.symmetric(
+                              horizontal: 8,
+                            ),
+                            child: Text(
+                              _infoStrings[index].message,
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                )
+                    :null,
               );
             },
           ),
@@ -246,22 +317,47 @@ class _JoinPageState extends State<JoinPage> {
       child: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Container(
-          decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: <Color>[
-                  Colors.pink, Colors.red
-                ],
-              ),
-              borderRadius: BorderRadius.all(Radius.circular(8.0))
-          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
+              Container(
+                decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: <Color>[
+                        Colors.pink, Colors.red
+                      ],
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(4.0))
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5.0,horizontal: 8.0),
+                  child: Text('LIVE',style: TextStyle(color: Colors.white,fontSize: 15,fontWeight: FontWeight.bold),),
+                ),
+              ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5.0,horizontal: 8.0),
-                child: Text('LIVE',style: TextStyle(color: Colors.white,fontSize: 15,fontWeight: FontWeight.bold),),
+                padding: const EdgeInsets.only(left:5,right:10),
+                child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(.6),
+                        borderRadius: BorderRadius.all(Radius.circular(4.0))
+                    ),
+                    height: 28,
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(FontAwesomeIcons.eye,color: Colors.white,size: 13,),
+                          SizedBox(width: 5,),
+                          Text('$userNo',style: TextStyle(color: Colors.white,fontSize: 11),),
+                        ],
+                      ),
+                    )
+                ),
               ),
             ],
           ),
@@ -279,9 +375,36 @@ class _JoinPageState extends State<JoinPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
+            CachedNetworkImage(
+              imageUrl: widget.hostImage,
+              imageBuilder: (context, imageProvider) => Container(
+                width: 30.0,
+                height: 30.0,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                      image: imageProvider, fit: BoxFit.cover),
+                ),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 5.0,horizontal: 8.0),
-              child: Text('${widget.channelName}',style: TextStyle(color: Colors.white,fontSize: 20,fontStyle: FontStyle.italic),),
+              child: Text(
+                '${widget.channelName}',
+                style: TextStyle(
+                    shadows: [
+                      Shadow(
+                        blurRadius: 4,
+                        color: Colors.black,
+                        offset: Offset(0, 1.3),
+                      ),
+                    ],
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    fontStyle: FontStyle.italic
+                ),
+              ),
             ),
           ],
         ),
@@ -375,9 +498,9 @@ class _JoinPageState extends State<JoinPage> {
   void _logout() async {
     try {
       await _client.logout();
-      _log('Logout success.');
+     // _log('Logout success.');
     } catch (errorCode) {
-      _log('Logout error: ' + errorCode.toString());
+      //_log('Logout error: ' + errorCode.toString());
     }
   }
 
@@ -385,12 +508,12 @@ class _JoinPageState extends State<JoinPage> {
   void _leaveChannel() async {
     try {
       await _channel.leave();
-      _log('Leave channel success.');
+      //_log('Leave channel success.');
       _client.releaseChannel(_channel.channelId);
       _channelMessageController.text = null;
 
     } catch (errorCode) {
-      _log('Leave channel error: ' + errorCode.toString());
+      //_log('Leave channel error: ' + errorCode.toString());
     }
   }
 
@@ -402,9 +525,9 @@ class _JoinPageState extends State<JoinPage> {
     try {
       _channelMessageController.clear();
       await _channel.sendMessage(AgoraRtmMessage.fromText(text));
-      _log('${widget.username}: $text');
+      _log(user: widget.username, info: text,type: 'message');
     } catch (errorCode) {
-      _log('Send channel message error: ' + errorCode.toString());
+      //_log('Send channel message error: ' + errorCode.toString());
     }
   }
 
@@ -415,22 +538,24 @@ class _JoinPageState extends State<JoinPage> {
     try {
       _channelMessageController.clear();
       await _channel.sendMessage(AgoraRtmMessage.fromText(text));
-      _log('${widget.username}: $text');
+      _log(user: widget.channelName, info:text,type: 'message');
     } catch (errorCode) {
-      _log('Send channel message error: ' + errorCode.toString());
+      //_log('Send channel message error: ' + errorCode.toString());
     }
   }
 
   void _createClient() async {
     _client =
     await AgoraRtmClient.createInstance('b42ce8d86225475c9558e478f1ed4e8e');
-    _client.onMessageReceived = (AgoraRtmMessage message, String peerId) {
-      _log(peerId + ": " + message.text);
+    _client.onMessageReceived = (AgoraRtmMessage message, String peerId)  async{
+      var img = await FireStoreClass.getImage(username: peerId);
+      userMap.putIfAbsent(peerId, () => img);
+      _log(user: peerId,  info: message.text, type: 'message');
     };
     _client.onConnectionStateChanged = (int state, int reason) {
       if (state == 5) {
         _client.logout();
-        _log('Logout.');
+       // _log('Logout.');
         setState(() {
           _isLogin = false;
         });
@@ -439,25 +564,59 @@ class _JoinPageState extends State<JoinPage> {
     await _client.login(null, widget.username );
     _channel = await _createChannel(widget.channelName);
     await _channel.join();
+    var len;
+    _channel.getMembers().then((value) {
+      len = value.length;
+      setState(() {
+        userNo= len-1 ;
+      });
+    });
+
+
   }
 
   Future<AgoraRtmChannel> _createChannel(String name) async {
     AgoraRtmChannel channel = await _client.createChannel(name);
-    channel.onMemberJoined = (AgoraRtmMember member) {
-      _log(
-          'Member joined: ' + member.userId);
+    channel.onMemberJoined = (AgoraRtmMember member) async{
+      var img = await FireStoreClass.getImage(username: member.userId);
+      userMap.putIfAbsent(member.userId, () => img);
+      var len;
+      _channel.getMembers().then((value) {
+        len = value.length;
+        setState(() {
+          userNo= len-1 ;
+        });
+      });
+
+      _log(info: 'Member joined: ',  user: member.userId,type: 'join');
+    };
+    channel.onMemberLeft = (AgoraRtmMember member) {
+      var len;
+      _channel.getMembers().then((value) {
+        len = value.length;
+        setState(() {
+          userNo= len-1 ;
+        });
+      });
+
     };
     channel.onMessageReceived =
-        (AgoraRtmMessage message, AgoraRtmMember member) {
-      _log(member.userId + ':-  ' + message.text);
+        (AgoraRtmMessage message, AgoraRtmMember member) async {
+          var img = await FireStoreClass.getImage(username: member.userId);
+          userMap.putIfAbsent(member.userId, () => img);
+          _log(user: member.userId, info: message.text,type: 'message');
     };
     return channel;
   }
 
-  void _log(String info) {
-    print(info);
+  void _log({String info,String type,String user}) {
+    var image = userMap[user];
+    if(type=='message'){
+      print('Xperion $image, $user, $info');
+    }
+    Message m = new Message(message: info,type: type,user: user,image: image);
     setState(() {
-      _infoStrings.insert(0, info);
+      _infoStrings.insert(0,m);
     });
   }
 }
