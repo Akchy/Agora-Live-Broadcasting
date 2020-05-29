@@ -6,9 +6,11 @@ class LoadingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        height: MediaQuery.of(context).size.height,
         color:  Colors.black,
         child: SafeArea(
           child: Container(
+            height: MediaQuery.of(context).size.height,
             width: double.infinity,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

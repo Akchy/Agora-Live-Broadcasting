@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../utils/settings.dart';
 import 'package:wakelock/wakelock.dart';
+import 'dart:math' as math;
+import 'package:agorartm/screen/HearAnim.dart';
 
 class JoinPage extends StatefulWidget {
   /// non-modifiable channel name of the page
@@ -35,6 +37,7 @@ class _JoinPageState extends State<JoinPage> {
   bool muted = true;
   int userNo = 0;
   var userMap ;
+  bool heart = false;
 
   bool _isLogin = true;
   bool _isInChannel = true;
@@ -45,6 +48,12 @@ class _JoinPageState extends State<JoinPage> {
 
   AgoraRtmClient _client;
   AgoraRtmChannel _channel;
+
+  //Love animation
+  final _random = math.Random();
+  Timer _timer;
+  double _height = 0.0;
+  int _numConfetti = 10;
 
 
   @override
@@ -155,12 +164,7 @@ class _JoinPageState extends State<JoinPage> {
 
   /// Video view wrapper
   Widget _videoView(view) {
-    return Expanded(child: ClipRRect(
-            borderRadius: new BorderRadius.only(
-              bottomRight: const Radius.circular(8.0),
-              bottomLeft: const Radius.circular(8.0),
-            ),
-        child: view));
+    return Expanded(child: ClipRRect(child: view));
   }
 
 
@@ -168,16 +172,63 @@ class _JoinPageState extends State<JoinPage> {
   Widget _viewRows() {
     final views = _getRenderViews();
     return (loading==true)&&(completed==false)?
-      LoadingPage():Container(
-        height: MediaQuery.of(context).size.height-90,
-        child: Column(
-          children: <Widget>[_videoView(views[0])],
+      //LoadingPage()
+        LoadingPage()
+        :Container(
+          child: Column(
+            children: <Widget>[_videoView(views[0])],
         ));
+  }
+
+  void popUp() async{
+    setState(() {
+      heart=true;
+    });
+    Timer(Duration(seconds: 4), () =>
+    {
+      _timer.cancel(),
+      setState(() {
+        heart=false;
+      })
+    });
+    _timer = Timer.periodic(Duration(milliseconds: 125), (Timer t) {
+      setState(() {
+        _height += _random.nextInt(20);
+      });
+    });
+  }
+
+  Widget heartPop(){
+    final size = MediaQuery.of(context).size;
+    final confetti = <Widget>[];
+    for (var i = 0; i < _numConfetti; i++) {
+      final height = _random.nextInt(size.height.floor());
+      final width = 20;
+      confetti.add(HeartAnim(height % 200.0,
+          width.toDouble(),1));
+    }
+
+
+    return Container(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom:20),
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: Container(
+            height: 400,
+            width: 200,
+            child: Stack(
+              children: confetti,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
 
   /// Info panel to show logs
-  Widget _panel() {
+  Widget _messageList() {
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
       alignment: Alignment.bottomCenter,
@@ -297,6 +348,8 @@ class _JoinPageState extends State<JoinPage> {
     await Wakelock.disable();
     _leaveChannel();
     _logout();
+    AgoraRtcEngine.leaveChannel();
+    AgoraRtcEngine.destroy();
     return true;
     // return true if the route to be popped
   }
@@ -343,7 +396,7 @@ class _JoinPageState extends State<JoinPage> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(left:5,right:10),
+                padding: const EdgeInsets.only(left:5),
                 child: Container(
                     decoration: BoxDecoration(
                         color: Colors.black.withOpacity(.6),
@@ -430,10 +483,11 @@ class _JoinPageState extends State<JoinPage> {
                 child: (completed==true)?_ending():Stack(
                   children: <Widget>[
                     _viewRows(),
+                    _bottomBar(),
                     _username(),
                     _liveText(),
-                    _buildSendChannelMessage(),
-                    _panel(),
+                    _messageList(),
+                    if(heart == true) heartPop(),
                   ],
                 ),
               ),
@@ -446,73 +500,80 @@ class _JoinPageState extends State<JoinPage> {
   // Agora RTM
 
 
-  Widget _buildSendChannelMessage() {
+  Widget _bottomBar() {
     if (!_isLogin || !_isInChannel) {
       return Container();
     }
     return Container(
       alignment: Alignment.bottomRight,
-      child: Padding(
-        padding: const EdgeInsets.only(left:8,top:5,right: 8,bottom: 5),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              new Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10.0,0,0,0),
-                    child: new TextField(
-                        cursorColor: Colors.red,
-                        textInputAction: TextInputAction.go,
-                        onSubmitted: _sendMessage,
-                        style: TextStyle(color: Colors.white,),
-                        controller: _channelMessageController,
-                        textCapitalization: TextCapitalization.sentences,
-                        decoration: InputDecoration(
-                          isDense: true,
-                          hintText: 'Comment',
-                          hintStyle: TextStyle(color: Colors.white),
-                          enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(50.0),
-                              borderSide: BorderSide(color: Colors.white)
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(50.0),
-                              borderSide: BorderSide(color: Colors.white)
-                          ),
-                        )
+      child: Container(
+        color: Colors.black,
+        child: Padding(
+          padding: const EdgeInsets.only(left:8,top:5,right: 8,bottom: 5),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                new Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0.0,0,0,0),
+                      child: new TextField(
+                          cursorColor: Colors.red,
+                          textInputAction: TextInputAction.go,
+                          onSubmitted: _sendMessage,
+                          style: TextStyle(color: Colors.white,),
+                          controller: _channelMessageController,
+                          textCapitalization: TextCapitalization.sentences,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            hintText: 'Comment',
+                            hintStyle: TextStyle(color: Colors.white),
+                            enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(50.0),
+                                borderSide: BorderSide(color: Colors.white)
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(50.0),
+                                borderSide: BorderSide(color: Colors.white)
+                            ),
+                          )
+                      ),
+                    )
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
+                  child: MaterialButton(
+                    minWidth: 0,
+                    onPressed: _toggleSendChannelMessage,
+                    child: Icon(
+                      Icons.send,
+                      color: Colors.white,
+                      size: 20.0,
                     ),
-                  )
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
-                child: MaterialButton(
-                  minWidth: 0,
-                  onPressed: _toggleSendChannelMessage,
-                  child: Icon(
-                    Icons.send,
-                    color: Colors.white,
-                    size: 20.0,
+                    shape: CircleBorder(),
+                    elevation: 2.0,
+                    color: Colors.pinkAccent[400],
+                    padding: const EdgeInsets.all(12.0),
                   ),
-                  shape: CircleBorder(),
-                  elevation: 2.0,
-                  color: Colors.pinkAccent[400],
-                  padding: const EdgeInsets.all(12.0),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                child: MaterialButton(
-                  minWidth: 0,
-                  onPressed: _toggleSendChannelMessage,
-                  child: Icon(
-                    Icons.favorite_border,
-                    color: Colors.white,
-                    size: 30.0,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                  child: MaterialButton(
+                    minWidth: 0,
+                    onPressed: ()
+                    async{
+                      popUp();
+                    await _channel.sendMessage(AgoraRtmMessage.fromText('m1x2y3z4p5t6l7k8'));
+                    },
+                    child: Icon(
+                      Icons.favorite_border,
+                      color: Colors.white,
+                      size: 30.0,
+                    ),
+                    padding: const EdgeInsets.all(12.0),
                   ),
-                  padding: const EdgeInsets.all(12.0),
                 ),
-              ),
-            ]
+              ]
+          ),
         ),
       ),
     );
@@ -573,7 +634,7 @@ class _JoinPageState extends State<JoinPage> {
     _client.onMessageReceived = (AgoraRtmMessage message, String peerId)  async{
       var img = await FireStoreClass.getImage(username: peerId);
       userMap.putIfAbsent(peerId, () => img);
-      _log(user: peerId,  info: message.text, type: 'message');
+      _log(user: peerId, info: message.text, type: 'message');
     };
     _client.onConnectionStateChanged = (int state, int reason) {
       if (state == 5) {
@@ -627,20 +688,22 @@ class _JoinPageState extends State<JoinPage> {
         (AgoraRtmMessage message, AgoraRtmMember member) async {
           var img = await FireStoreClass.getImage(username: member.userId);
           userMap.putIfAbsent(member.userId, () => img);
-          _log(user: member.userId, info: message.text,type: 'message');
+          _log(user: member.userId, info: message.text, type: 'message');
     };
     return channel;
   }
 
   void _log({String info,String type,String user}) {
-    var image = userMap[user];
-    if(type=='message'){
-      print('Xperion $image, $user, $info');
+    if(type=='message' && info.contains('m1x2y3z4p5t6l7k8')){
+      popUp();
+    }else {
+      var image = userMap[user];
+      Message m = new Message(
+          message: info, type: type, user: user, image: image);
+      setState(() {
+        _infoStrings.insert(0, m);
+      });
     }
-    Message m = new Message(message: info,type: type,user: user,image: image);
-    setState(() {
-      _infoStrings.insert(0,m);
-    });
   }
 }
 

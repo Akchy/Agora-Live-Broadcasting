@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../utils/settings.dart';
 import 'package:wakelock/wakelock.dart';
+import 'dart:math' as math;
+
+import '../HearAnim.dart';
 
 class CallPage extends StatefulWidget {
   /// non-modifiable channel name of the page
@@ -32,6 +35,7 @@ class _CallPageState extends State<CallPage> {
   bool _isInChannel = true;
   int userNo = 0;
   var userMap ;
+  var tryingToEnd = false;
 
   final _channelMessageController = TextEditingController();
 
@@ -39,6 +43,13 @@ class _CallPageState extends State<CallPage> {
 
   AgoraRtmClient _client;
   AgoraRtmChannel _channel;
+  bool heart = false;
+
+  //Love animation
+  final _random = math.Random();
+  Timer _timer;
+  double _height = 0.0;
+  int _numConfetti = 5;
 
   @override
   void dispose() {
@@ -58,6 +69,8 @@ class _CallPageState extends State<CallPage> {
     userMap = {widget.channelName: widget.image};
     _createClient();
   }
+
+
 
 
 
@@ -128,12 +141,7 @@ class _CallPageState extends State<CallPage> {
 
   /// Video view wrapper
   Widget _videoView(view) {
-    return Expanded(child: ClipRRect(
-        borderRadius: new BorderRadius.only(
-          bottomRight: const Radius.circular(8.0),
-          bottomLeft: const Radius.circular(8.0),
-        ),
-        child: view));
+    return Expanded(child: ClipRRect(child: view));
   }
 
 
@@ -151,16 +159,63 @@ class _CallPageState extends State<CallPage> {
   Widget _viewRows() {
     final views = _getRenderViews();
     return Container(
-        height: MediaQuery.of(context).size.height-90,
         child: Column(
           children: <Widget>[_videoView(views[0])],
         ));
   }
 
 
+  void popUp() async{
+    setState(() {
+      heart=true;
+    });
+
+    _timer = Timer.periodic(Duration(milliseconds: 125), (Timer t) {
+      setState(() {
+        _height += _random.nextInt(20);
+      });
+    });
+
+    Timer(Duration(seconds: 4), () =>
+    {
+      _timer.cancel(),
+      setState(() {
+        heart=false;
+      })
+    });
+  }
+  Widget heartPop(){
+    final size = MediaQuery.of(context).size;
+    final confetti = <Widget>[];
+    for (var i = 0; i < _numConfetti; i++) {
+      final height = _random.nextInt(size.height.floor());
+      final width = 20;
+      confetti.add(HeartAnim(height % 200.0,
+          width.toDouble(), 0.5,));
+    }
+
+
+    return Container(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom:20),
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: Container(
+            height: 400,
+            width: 200,
+            child: Stack(
+              children: confetti,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
 
   /// Info panel to show logs
-  Widget _panel() {
+  Widget messageList() {
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
       alignment: Alignment.bottomCenter,
@@ -310,15 +365,7 @@ class _CallPageState extends State<CallPage> {
     );
   }
 
-  void _onCallEnd(BuildContext context) async {
-    await _showDialog();
-    if(pop){
-      _logout();
-      _leaveChannel();
-      FireStoreClass.deleteUser(username: channelName);
-      Navigator.pop(context);
-    }
-  }
+
 
   void _onToggleMute() {
     setState(() {
@@ -332,14 +379,9 @@ class _CallPageState extends State<CallPage> {
   }
 
   Future<bool> _willPopCallback() async {
-    await _showDialog();
-    if(pop) {
-      _logout();
-      _leaveChannel();
-      FireStoreClass.deleteUser(username: channelName);
-      //await Firestore.instance.collection('liveuser').document(channel_name).delete();
-      return true;
-    }
+    setState(() {
+      tryingToEnd=true;
+    });
     return false;// return true if the route to be popped
   }
 
@@ -352,7 +394,11 @@ class _CallPageState extends State<CallPage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(15,15,15,15),
             child: GestureDetector(
-              onTap: () => _onCallEnd(context),
+              onTap: () {
+                setState(() {
+                  tryingToEnd=true;
+                });
+              },
               child: Text('END',style: TextStyle(color: Colors.pink,fontSize: 20,fontWeight: FontWeight.bold),),
             ),
           ),
@@ -412,6 +458,79 @@ class _CallPageState extends State<CallPage> {
     );
   }
 
+  Widget endLive(){
+    return Container(
+      color: Colors.black.withOpacity(0.5),
+      child: Stack(
+        children: <Widget>[
+          Align(
+              alignment: Alignment.center,
+              child: Padding(
+                padding: const EdgeInsets.all(30.0),
+                child: Text(
+                  'Are you sure you want to end your live video?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize:20
+                  ),
+                ),
+              ),
+          ),
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8.0,right: 4.0,top:8.0,bottom:8.0),
+                    child: RaisedButton(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        child: Text('End Video',style: TextStyle(color: Colors.white),),
+                      ),
+                      elevation: 2.0,
+                      color: Colors.pink,
+                      onPressed: () async{
+                        await Wakelock.disable();
+                        _logout();
+                        _leaveChannel();
+                        AgoraRtcEngine.leaveChannel();
+                        AgoraRtcEngine.destroy();
+                        FireStoreClass.deleteUser(username: channelName);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 4.0,right: 8.0,top:8.0,bottom:8.0),
+                    child: RaisedButton(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        child: Text('Cancel',style: TextStyle(color:Colors.white),),
+                      ),
+                      elevation: 2.0,
+                      color: Colors.grey,
+                      onPressed: (){
+                        setState(() {
+                          tryingToEnd=false;
+                        });
+                      },
+                    ),
+                  ),
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -423,10 +542,12 @@ class _CallPageState extends State<CallPage> {
                 child: Stack(
                   children: <Widget>[
                     _viewRows(),// Video Widget
-                    _endCall(),
-                    _liveText(),
-                    _buildSendChannelMessage(), // send message
-                    _panel(), // view message
+                    if(tryingToEnd==false)_endCall(),
+                    if(tryingToEnd==false)_liveText(),
+                    if(heart == true && tryingToEnd==false) heartPop(),
+                    if(tryingToEnd==false) _bottomBar(), // send message
+                    if(tryingToEnd==false)messageList(),
+                    if(tryingToEnd==true)endLive(),// view message
                   ],
                 ),
               ),
@@ -438,92 +559,95 @@ class _CallPageState extends State<CallPage> {
   }
 // Agora RTM
 
-  Widget _buildSendChannelMessage() {
+  Widget _bottomBar() {
     if (!_isLogin || !_isInChannel) {
       return Container();
     }
     return Container(
       alignment: Alignment.bottomRight,
-      child: Padding(
-        padding: const EdgeInsets.only(left:8,top:5,right: 8,bottom: 5),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            new Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10.0,0,0,0),
-                  child: new TextField(
-                    cursorColor: Colors.red,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: _sendMessage,
-                    style: TextStyle(color: Colors.white),
-                    controller: _channelMessageController,
-                    textCapitalization: TextCapitalization.sentences,
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: 'Comment',
-                      hintStyle: TextStyle(color: Colors.white),
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(50.0),
-                          borderSide: BorderSide(color: Colors.white)
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(50.0),
-                          borderSide: BorderSide(color: Colors.white)
-                      ),
-                    )
+      child: Container(
+        color: Colors.black,
+        child: Padding(
+          padding: const EdgeInsets.only(left:8,top:5,right: 8,bottom: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              new Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0.0,0,0,0),
+                    child: new TextField(
+                      cursorColor: Colors.red,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: _sendMessage,
+                      style: TextStyle(color: Colors.white),
+                      controller: _channelMessageController,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: 'Comment',
+                        hintStyle: TextStyle(color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(50.0),
+                            borderSide: BorderSide(color: Colors.white)
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(50.0),
+                            borderSide: BorderSide(color: Colors.white)
+                        ),
+                      )
+                    ),
+                  )
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
+                child: MaterialButton(
+                  minWidth: 0,
+                  onPressed: _toggleSendChannelMessage,
+                  child: Icon(
+                    Icons.send,
+                    color: Colors.white,
+                    size: 20.0,
                   ),
-                )
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
-              child: MaterialButton(
-                minWidth: 0,
-                onPressed: _toggleSendChannelMessage,
-                child: Icon(
-                  Icons.send,
-                  color: Colors.white,
-                  size: 20.0,
-                ),
-                shape: CircleBorder(),
-                elevation: 2.0,
-                color: Colors.pinkAccent[400],
-                padding: const EdgeInsets.all(12.0),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
-              child: MaterialButton(
-                minWidth: 0,
-                onPressed: _onToggleMute,
-                child: Icon(
-                  muted ? Icons.mic_off : Icons.mic,
-                  color: muted ? Colors.white : Colors.pinkAccent[400],
-                  size: 20.0,
-                ),
-                shape: CircleBorder(),
-                elevation: 2.0,
-                color: muted ? Colors.pinkAccent[400] : Colors.white,
-                padding: const EdgeInsets.all(12.0),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
-              child: MaterialButton(
-                minWidth: 0,
-                onPressed: _onSwitchCamera,
-                child: Icon(
-                  Icons.switch_camera,
+                  shape: CircleBorder(),
+                  elevation: 2.0,
                   color: Colors.pinkAccent[400],
-                  size: 20.0,
+                  padding: const EdgeInsets.all(12.0),
                 ),
-                shape: CircleBorder(),
-                elevation: 2.0,
-                color: Colors.white,
-                padding: const EdgeInsets.all(12.0),
               ),
-            )
-          ]
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
+                child: MaterialButton(
+                  minWidth: 0,
+                  onPressed: _onToggleMute,
+                  child: Icon(
+                    muted ? Icons.mic_off : Icons.mic,
+                    color: muted ? Colors.white : Colors.pinkAccent[400],
+                    size: 20.0,
+                  ),
+                  shape: CircleBorder(),
+                  elevation: 2.0,
+                  color: muted ? Colors.pinkAccent[400] : Colors.white,
+                  padding: const EdgeInsets.all(12.0),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
+                child: MaterialButton(
+                  minWidth: 0,
+                  onPressed: _onSwitchCamera,
+                  child: Icon(
+                    Icons.switch_camera,
+                    color: Colors.pinkAccent[400],
+                    size: 20.0,
+                  ),
+                  shape: CircleBorder(),
+                  elevation: 2.0,
+                  color: Colors.white,
+                  padding: const EdgeInsets.all(12.0),
+                ),
+              )
+            ]
+          ),
         ),
       ),
     );
@@ -632,10 +756,15 @@ class _CallPageState extends State<CallPage> {
   }
 
   void _log({String info,String type,String user}) {
-    var image = userMap[user];
-    Message m = new Message(message: info,type: type,user: user,image: image);
-    setState(() {
-      _infoStrings.insert(0,m);
-    });
+    if(type=='message' && info.contains('m1x2y3z4p5t6l7k8')){
+      popUp();
+    }else {
+      var image = userMap[user];
+      Message m = new Message(
+          message: info, type: type, user: user, image: image);
+      setState(() {
+        _infoStrings.insert(0, m);
+      });
+    }
   }
 }
