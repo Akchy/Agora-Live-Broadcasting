@@ -128,8 +128,14 @@ class _CallPageState extends State<CallPage> {
 
   /// Video view wrapper
   Widget _videoView(view) {
-    return Expanded(child: Container(child: view));
+    return Expanded(child: ClipRRect(
+        borderRadius: new BorderRadius.only(
+          bottomRight: const Radius.circular(8.0),
+          bottomLeft: const Radius.circular(8.0),
+        ),
+        child: view));
   }
+
 
 /*  /// Video view row wrapper
   Widget _expandedVideoRow(List<Widget> views) {
@@ -145,6 +151,7 @@ class _CallPageState extends State<CallPage> {
   Widget _viewRows() {
     final views = _getRenderViews();
     return Container(
+        height: MediaQuery.of(context).size.height-90,
         child: Column(
           children: <Widget>[_videoView(views[0])],
         ));
@@ -155,7 +162,7 @@ class _CallPageState extends State<CallPage> {
   /// Info panel to show logs
   Widget _panel() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
       alignment: Alignment.bottomCenter,
       child: FractionallySizedBox(
         heightFactor: 0.5,
@@ -410,15 +417,18 @@ class _CallPageState extends State<CallPage> {
     return WillPopScope(
         child:SafeArea(
           child: Scaffold(
-            body: Center(
-              child: Stack(
-                children: <Widget>[
-                  _viewRows(),// Video Widget
-                  _endCall(),
-                  _liveText(),
-                  _buildSendChannelMessage(), // send message
-                  _panel(), // view message
-                ],
+            body: Container(
+              color: Colors.black,
+              child: Center(
+                child: Stack(
+                  children: <Widget>[
+                    _viewRows(),// Video Widget
+                    _endCall(),
+                    _liveText(),
+                    _buildSendChannelMessage(), // send message
+                    _panel(), // view message
+                  ],
+                ),
               ),
             ),
           ),
@@ -435,7 +445,7 @@ class _CallPageState extends State<CallPage> {
     return Container(
       alignment: Alignment.bottomRight,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 18.0,),
+        padding: const EdgeInsets.only(left:8,top:5,right: 8,bottom: 5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
@@ -450,14 +460,15 @@ class _CallPageState extends State<CallPage> {
                     controller: _channelMessageController,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
+                      isDense: true,
                       hintText: 'Comment',
                       hintStyle: TextStyle(color: Colors.white),
                       enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
+                          borderRadius: BorderRadius.circular(50.0),
                           borderSide: BorderSide(color: Colors.white)
                       ),
                       focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
+                          borderRadius: BorderRadius.circular(50.0),
                           borderSide: BorderSide(color: Colors.white)
                       ),
                     )
@@ -465,7 +476,7 @@ class _CallPageState extends State<CallPage> {
                 )
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(8.0, 0, 4.0, 0),
+              padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
               child: MaterialButton(
                 minWidth: 0,
                 onPressed: _toggleSendChannelMessage,
@@ -481,7 +492,7 @@ class _CallPageState extends State<CallPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(4.0, 0, 4.0, 0),
+              padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
               child: MaterialButton(
                 minWidth: 0,
                 onPressed: _onToggleMute,
@@ -497,7 +508,7 @@ class _CallPageState extends State<CallPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(4.0, 0, 8.0, 0),
+              padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
               child: MaterialButton(
                 minWidth: 0,
                 onPressed: _onSwitchCamera,

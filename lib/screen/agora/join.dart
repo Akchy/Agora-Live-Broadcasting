@@ -155,7 +155,12 @@ class _JoinPageState extends State<JoinPage> {
 
   /// Video view wrapper
   Widget _videoView(view) {
-    return Expanded(child: Container(child: view));
+    return Expanded(child: ClipRRect(
+            borderRadius: new BorderRadius.only(
+              bottomRight: const Radius.circular(8.0),
+              bottomLeft: const Radius.circular(8.0),
+            ),
+        child: view));
   }
 
 
@@ -164,6 +169,7 @@ class _JoinPageState extends State<JoinPage> {
     final views = _getRenderViews();
     return (loading==true)&&(completed==false)?
       LoadingPage():Container(
+        height: MediaQuery.of(context).size.height-90,
         child: Column(
           children: <Widget>[_videoView(views[0])],
         ));
@@ -173,7 +179,7 @@ class _JoinPageState extends State<JoinPage> {
   /// Info panel to show logs
   Widget _panel() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
       alignment: Alignment.bottomCenter,
       child: FractionallySizedBox(
         heightFactor: 0.5,
@@ -418,15 +424,18 @@ class _JoinPageState extends State<JoinPage> {
     return WillPopScope(
         child:SafeArea(
           child: Scaffold(
-            body: Center(
-              child: (completed==true)?_ending():Stack(
-                children: <Widget>[
-                  _viewRows(),
-                  _username(),
-                  _liveText(),
-                  _buildSendChannelMessage(),
-                  _panel(),
-                ],
+            body: Container(
+              color: Colors.black,
+              child: Center(
+                child: (completed==true)?_ending():Stack(
+                  children: <Widget>[
+                    _viewRows(),
+                    _username(),
+                    _liveText(),
+                    _buildSendChannelMessage(),
+                    _panel(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -444,7 +453,7 @@ class _JoinPageState extends State<JoinPage> {
     return Container(
       alignment: Alignment.bottomRight,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 18.0,),
+        padding: const EdgeInsets.only(left:8,top:5,right: 8,bottom: 5),
         child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
@@ -455,18 +464,19 @@ class _JoinPageState extends State<JoinPage> {
                         cursorColor: Colors.red,
                         textInputAction: TextInputAction.go,
                         onSubmitted: _sendMessage,
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.white,),
                         controller: _channelMessageController,
                         textCapitalization: TextCapitalization.sentences,
                         decoration: InputDecoration(
+                          isDense: true,
                           hintText: 'Comment',
                           hintStyle: TextStyle(color: Colors.white),
                           enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
+                              borderRadius: BorderRadius.circular(50.0),
                               borderSide: BorderSide(color: Colors.white)
                           ),
                           focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
+                              borderRadius: BorderRadius.circular(50.0),
                               borderSide: BorderSide(color: Colors.white)
                           ),
                         )
@@ -474,7 +484,7 @@ class _JoinPageState extends State<JoinPage> {
                   )
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(8.0, 0, 4.0, 0),
+                padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
                 child: MaterialButton(
                   minWidth: 0,
                   onPressed: _toggleSendChannelMessage,
@@ -486,6 +496,19 @@ class _JoinPageState extends State<JoinPage> {
                   shape: CircleBorder(),
                   elevation: 2.0,
                   color: Colors.pinkAccent[400],
+                  padding: const EdgeInsets.all(12.0),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: MaterialButton(
+                  minWidth: 0,
+                  onPressed: _toggleSendChannelMessage,
+                  child: Icon(
+                    Icons.favorite_border,
+                    color: Colors.white,
+                    size: 30.0,
+                  ),
                   padding: const EdgeInsets.all(12.0),
                 ),
               ),

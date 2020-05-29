@@ -1,8 +1,9 @@
+import 'dart:async';
+
 import 'package:agorartm/firebaseDB/auth.dart';
 import 'package:agorartm/models/live.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flare_flutter/flare_actor.dart';
 import 'package:flare_flutter/flare_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -30,11 +31,14 @@ class _HomePageState extends State<HomePage> {
   var name;
   var image ='https://nichemodels.co/wp-content/uploads/2019/03/user-dummy-pic.png';
   var username;
+  var postUsername;
 
   @override
   Widget build(BuildContext context) {
     return getMain();
   }
+
+
 
 
   @override
@@ -51,6 +55,7 @@ class _HomePageState extends State<HomePage> {
     var newDate = '${DateFormat("dd-MM-yyyy hh:mm:ss").format(date)}';
     */
   }
+
 
   Future<void> loadSharedPref() async{
     final prefs = await SharedPreferences.getInstance();
@@ -343,38 +348,18 @@ class _HomePageState extends State<HomePage> {
               setState(() {
                 userPosts[index].isLiked = post.isLiked ? true : true;
               });
-              flareControls.play("like");
             },
-            child: Stack(
-              children: <Widget>[
-                Container(
-                constraints: BoxConstraints(
-                  maxHeight: 280
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  image: DecorationImage(
-                    image: post.image
-                  )
-                ),
-              ),
-                Container(
-                  width: double.infinity,
-                  height: 250,
-                  child: Center(
-                    child: SizedBox(
-                      width: 80,
-                      height: 80,
-                      child: FlareActor(
-                        'assets/instagram_like.flr',
-                        controller: flareControls,
-                        animation: 'idle',
-                      ),
-                    ),
-                  ),
-                ),
-              ]
+            child: Container(
+            constraints: BoxConstraints(
+              maxHeight: 280
             ),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              image: DecorationImage(
+                image: post.image
+              )
+            ),
+                ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
