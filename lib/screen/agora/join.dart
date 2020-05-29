@@ -54,7 +54,7 @@ class _JoinPageState extends State<JoinPage> {
   Timer _timer;
   double _height = 0.0;
   int _numConfetti = 10;
-
+  var len;
 
   @override
   void dispose() {
@@ -356,14 +356,20 @@ class _JoinPageState extends State<JoinPage> {
 
   Widget _ending(){
     return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: Colors.black,
+      color: Colors.black.withOpacity(.7),
       child: Center(
-        child: Text('The Live has ended\n\nThank you',
-          style: TextStyle(
-            fontSize: 25.0,letterSpacing: 1.5,
-            color: Colors.pinkAccent,
+        child: Container(
+          width: double.infinity,
+          color: Colors.grey[700],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            child: Text('The Live has ended',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20.0,letterSpacing: 1.5,
+                color: Colors.white,
+              ),
+            ),
           ),
         )
       ),
@@ -483,11 +489,12 @@ class _JoinPageState extends State<JoinPage> {
                 child: (completed==true)?_ending():Stack(
                   children: <Widget>[
                     _viewRows(),
-                    _bottomBar(),
+                    if(completed==false)_bottomBar(),
                     _username(),
                     _liveText(),
-                    _messageList(),
-                    if(heart == true) heartPop(),
+                    if(completed==false)_messageList(),
+                    if(heart == true && completed==false) heartPop(),
+                    //_ending()
                   ],
                 ),
               ),
@@ -664,7 +671,7 @@ class _JoinPageState extends State<JoinPage> {
     channel.onMemberJoined = (AgoraRtmMember member) async{
       var img = await FireStoreClass.getImage(username: member.userId);
       userMap.putIfAbsent(member.userId, () => img);
-      var len;
+
       _channel.getMembers().then((value) {
         len = value.length;
         setState(() {
