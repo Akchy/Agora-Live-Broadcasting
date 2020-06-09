@@ -10,6 +10,7 @@
 .history
 .svn/
 android/app/google-services.json
+lib/utils/settings.dart
 
 # IntelliJ related
 *.iml
