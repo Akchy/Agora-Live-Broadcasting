@@ -6,7 +6,7 @@ This is made in flutter framework and with Firebase as backend. The video SDK us
 - Clone the repo to your local machine.
 - Link your Firebase to the project. Will need Authentication, Cloud FireStore Database and Firebase Storage. Refere [here](https://firebase.google.com/docs/flutter/setup?platform=android) for linking Firebase to Flutter.
 - Do note to add the google-service.json file into "android/app/"
-- After linking create a Agora account, and create a new project or from existing project get APP ID, and add this to "libs/utils/settings.dart".
+- After linking create a Agora account, and create a new project or from existing project get APP ID, and add this to "libs/utils/setting.dart".
 - Do not forget to run the below code to get all the required files. 
 ```
 flutter pub get
