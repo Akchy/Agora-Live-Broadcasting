@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Instagram Live',
+      title: 'Agoragram',
       color: blackColor,
       home: SplashScreen(),
       routes: <String, WidgetBuilder>{

@@ -95,15 +95,14 @@ class _HomePageState extends State<HomePage> {
           offset: Offset(-5, 0),
           child:  Icon(FontAwesomeIcons.camera,color: Colors.white,)
         ),
-        titleSpacing: -13,
-        title: SizedBox(
-            height: 35.0, child: Image.asset("assets/images/title.png")),
+        titleSpacing: -10,
+        title: Text('Agoragram', style: TextStyle(fontFamily: 'Billabong',fontSize: 28),),
         actions: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
             child: Icon(FontAwesomeIcons.paperPlane,color: Colors.white,),
           ),
-          Padding(
+          /*Padding(
               padding: EdgeInsets.only(right: 20.0),
               child: GestureDetector(
                 onTap: () => logout(),
@@ -111,7 +110,7 @@ class _HomePageState extends State<HomePage> {
                     Icons.exit_to_app
                 ),
               )
-          ),
+          ),*/
       ],
 
         backgroundColor: Colors.black87,
@@ -186,9 +185,9 @@ class _HomePageState extends State<HomePage> {
                             shape: BoxShape.circle,
                             gradient: LinearGradient(
                                 colors: [
-                                  Colors.purple[700],
-                                  Colors.pink,
-                                  Colors.orange
+                                  Colors.indigo,
+                                  Colors.blue,
+                                  Colors.cyan
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight
@@ -270,7 +269,7 @@ class _HomePageState extends State<HomePage> {
                                           2.0) //         <--- border radius here
                                   ),
                                   gradient: LinearGradient(
-                                      colors: [Colors.pink, Colors.red],
+                                      colors: [Colors.indigo, Colors.blueAccent],
                                       begin: Alignment.centerLeft,
                                       end: Alignment.centerRight
                                   ),
@@ -378,7 +377,7 @@ class _HomePageState extends State<HomePage> {
                         child: Icon(
                           Icons.favorite,
                           size: 30,
-                          color: Colors.red ,
+                          color: Colors.lightBlue ,
                         )
                     ),
                   ):

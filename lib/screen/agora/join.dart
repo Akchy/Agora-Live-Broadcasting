@@ -391,7 +391,7 @@ class _JoinPageState extends State<JoinPage> {
                 decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: <Color>[
-                        Colors.pink, Colors.red
+                        Colors.indigo, Colors.blue
                       ],
                     ),
                     borderRadius: BorderRadius.all(Radius.circular(4.0))
@@ -524,7 +524,7 @@ class _JoinPageState extends State<JoinPage> {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(0.0,0,0,0),
                       child: new TextField(
-                          cursorColor: Colors.red,
+                          cursorColor: Colors.blue,
                           textInputAction: TextInputAction.go,
                           onSubmitted: _sendMessage,
                           style: TextStyle(color: Colors.white,),
@@ -558,7 +558,7 @@ class _JoinPageState extends State<JoinPage> {
                     ),
                     shape: CircleBorder(),
                     elevation: 2.0,
-                    color: Colors.pinkAccent[400],
+                    color: Colors.blue[400],
                     padding: const EdgeInsets.all(12.0),
                   ),
                 ),

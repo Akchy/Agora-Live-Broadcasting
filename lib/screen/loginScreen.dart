@@ -210,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    'Instagram',
+                    'Agoragram',
                     style: TextStyle(
                       fontFamily: 'Billabong',
                       color: Colors.white,

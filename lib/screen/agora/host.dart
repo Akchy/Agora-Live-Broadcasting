@@ -399,7 +399,7 @@ class _CallPageState extends State<CallPage> {
                   tryingToEnd=true;
                 });
               },
-              child: Text('END',style: TextStyle(color: Colors.pink,fontSize: 20,fontWeight: FontWeight.bold),),
+              child: Text('END',style: TextStyle(color: Colors.indigo,fontSize: 20,fontWeight: FontWeight.bold),),
             ),
           ),
         ],
@@ -419,7 +419,7 @@ class _CallPageState extends State<CallPage> {
               decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: <Color>[
-                      Colors.pink, Colors.red
+                      Colors.indigo, Colors.blue
                     ],
                   ),
                   borderRadius: BorderRadius.all(Radius.circular(4.0))
@@ -491,7 +491,7 @@ class _CallPageState extends State<CallPage> {
                         child: Text('End Video',style: TextStyle(color: Colors.white),),
                       ),
                       elevation: 2.0,
-                      color: Colors.pink,
+                      color: Colors.blue,
                       onPressed: () async{
                         await Wakelock.disable();
                         _logout();
@@ -576,7 +576,7 @@ class _CallPageState extends State<CallPage> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(0.0,0,0,0),
                     child: new TextField(
-                      cursorColor: Colors.red,
+                      cursorColor: Colors.blue,
                       textInputAction: TextInputAction.send,
                       onSubmitted: _sendMessage,
                       style: TextStyle(color: Colors.white),
@@ -610,7 +610,7 @@ class _CallPageState extends State<CallPage> {
                   ),
                   shape: CircleBorder(),
                   elevation: 2.0,
-                  color: Colors.pinkAccent[400],
+                  color: Colors.blue[400],
                   padding: const EdgeInsets.all(12.0),
                 ),
               ),
@@ -621,12 +621,12 @@ class _CallPageState extends State<CallPage> {
                   onPressed: _onToggleMute,
                   child: Icon(
                     muted ? Icons.mic_off : Icons.mic,
-                    color: muted ? Colors.white : Colors.pinkAccent[400],
+                    color: muted ? Colors.white : Colors.blue[400],
                     size: 20.0,
                   ),
                   shape: CircleBorder(),
                   elevation: 2.0,
-                  color: muted ? Colors.pinkAccent[400] : Colors.white,
+                  color: muted ? Colors.blue[400] : Colors.white,
                   padding: const EdgeInsets.all(12.0),
                 ),
               ),
@@ -637,7 +637,7 @@ class _CallPageState extends State<CallPage> {
                   onPressed: _onSwitchCamera,
                   child: Icon(
                     Icons.switch_camera,
-                    color: Colors.pinkAccent[400],
+                    color: Colors.blue[400],
                     size: 20.0,
                   ),
                   shape: CircleBorder(),

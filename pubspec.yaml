@@ -90,6 +90,6 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
 flutter_icons:
-  image_path: "assets/images/instaLogo.png"
+  image_path: "assets/images/agoraLogo.png"
   android: true
   ios: true

@@ -11,7 +11,7 @@ class SplashScreen extends StatefulWidget{
 
 class _SplashScreenState extends State<SplashScreen> {
 
-  var image = Image.asset('assets/images/insta.png');
+  var image = Image.asset('assets/images/agoraLogo.png');
   @override
   void initState() {
     super.initState();
@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    precacheImage(AssetImage("assets/images/insta.png"), context);
+    precacheImage(AssetImage("assets/images/agoraLogo.png"), context);
     return Scaffold(
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -67,11 +67,17 @@ class _SplashScreenState extends State<SplashScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text('from', style: TextStyle(color: Colors.white,fontSize: 13),),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text('With ', style: TextStyle(color: Colors.white,fontSize: 13),),
+                      Icon(Icons.favorite, color: Colors.blue,)
+                    ],
+                  ),
                   SizedBox(height: 4,),
-                  GradientText('FACEBOOK',
+                  GradientText('DEVELOPERS',
                       gradient: LinearGradient(
-                          colors: [Colors.orange,  Colors.redAccent[700], Colors.pink]),
+                          colors: [Colors.lightBlueAccent,  Colors.blue, Colors.indigo]),
                       style: TextStyle(fontSize: 16,),
                       textAlign: TextAlign.center,
                   ),
