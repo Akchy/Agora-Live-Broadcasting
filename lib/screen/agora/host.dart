@@ -3,6 +3,7 @@ import 'package:agorartm/firebaseDB/firestoreDB.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:agora_rtm/agora_rtm.dart';
 import 'package:agorartm/models/message.dart';
+import 'package:agorartm/models/user.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,16 +27,17 @@ class CallPage extends StatefulWidget {
   _CallPageState createState() => _CallPageState();
 }
 
-class _CallPageState extends State<CallPage> {
+class _CallPageState extends State<CallPage>{
   static final _users = <int>[];
   String channelName;
+  List<User> userList = [];
 
-  bool muted = false;
   bool _isLogin = true;
   bool _isInChannel = true;
   int userNo = 0;
   var userMap ;
   var tryingToEnd = false;
+  bool personBool = false;
 
   final _channelMessageController = TextEditingController();
 
@@ -107,8 +109,6 @@ class _CallPageState extends State<CallPage> {
       await Wakelock.enable();
       // This is used for Keeping the device awake. Its now enabled
 
-      setState(() {
-      });
     };
 
     AgoraRtcEngine.onLeaveChannel = () {
@@ -367,21 +367,21 @@ class _CallPageState extends State<CallPage> {
 
 
 
-  void _onToggleMute() {
-    setState(() {
-      muted = !muted;
-    });
-    AgoraRtcEngine.muteLocalAudioStream(muted);
-  }
-
   void _onSwitchCamera() {
     AgoraRtcEngine.switchCamera();
   }
 
   Future<bool> _willPopCallback() async {
-    setState(() {
-      tryingToEnd=true;
-    });
+    if(personBool==true){
+      setState(() {
+        personBool=false;
+      });
+
+    }else {
+      setState(() {
+        tryingToEnd = !tryingToEnd;
+      });
+    }
     return false;// return true if the route to be popped
   }
 
@@ -395,6 +395,11 @@ class _CallPageState extends State<CallPage> {
             padding: const EdgeInsets.fromLTRB(15,15,15,15),
             child: GestureDetector(
               onTap: () {
+                if(personBool==true){
+                  setState(() {
+                    personBool=false;
+                  });
+                }
                 setState(() {
                   tryingToEnd=true;
                 });
@@ -530,6 +535,159 @@ class _CallPageState extends State<CallPage> {
     );
   }
 
+  Widget personList(){
+
+    return Container(
+      alignment: Alignment.bottomRight,
+      child: Container(
+        height: 2*MediaQuery.of(context).size.height/3,
+        width: MediaQuery.of(context).size.height,
+        decoration: new BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(25),
+            topRight: Radius.circular(25)
+          ),
+        ),
+        child: Stack(
+          children: <Widget>[
+            Container(
+              height: 2*MediaQuery.of(context).size.height/3 -50,
+              child: Column(
+                children: <Widget>[
+                  SizedBox(height: 10,),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    width: MediaQuery.of(context).size.width,
+                    alignment: Alignment.center,
+                    child: Text('Go Live with',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                  ),
+                  SizedBox(height: 10,),
+                  Divider(color: Colors.grey,thickness: 0.5,height: 0,),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+                    width: double.infinity,
+                    color: Colors.grey[50],
+                    child: Text(
+                      'When you go live with someone, anyone who can watch their live videos will be able to watch it too.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                  ),
+                  Container(
+                      padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
+                      width: double.maxFinite,
+                      child: Text(
+                        'INVITE',
+                        style: TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold
+                        ),
+                        textAlign: TextAlign.start,
+                      )
+                  ),
+                  Expanded(
+                    child: ListView(
+                        shrinkWrap: true,
+                        scrollDirection: Axis.vertical,
+                        children: getUserStories()
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                color: Colors.white,
+                alignment: Alignment.bottomCenter,
+                height: 50,
+                child: Stack(
+                  children: <Widget>[
+                    Divider(height: 0,color: Colors.grey,),
+                    GestureDetector(
+                      onTap: (){
+                        setState(() {
+                          personBool= !personBool;
+                        });
+                      },
+                      child: Container(
+                        height: double.maxFinite,
+                        alignment: Alignment.center ,
+                        child: Text('Cancel',style: TextStyle(fontWeight: FontWeight.bold),)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> getUserStories() {
+    List<Widget> stories = [];
+    for (User users in userList) {
+      stories.add(getStory(users));
+    }
+    return stories;
+  }
+
+  Widget getStory(User users) {
+    return Container(
+      padding: EdgeInsets.only(left: 15),
+      margin: EdgeInsets.symmetric(vertical: 7.5),
+      child: Column(
+        children: <Widget>[
+          Container(
+              child: GestureDetector(
+                onTap: (){
+                  /*if(users.me==true){
+                    // Host function
+                    onCreate(username: users.username, image: users.image);
+                  }
+                  else{
+                    // Join function
+                    onJoin(channelName: users.username,channelId: users.channelId,username: username, hostImage: users.image,userImage: image);
+                  }*/
+                },
+                child: Row(
+                  children: <Widget>[
+                    CachedNetworkImage(
+                      imageUrl: users.image,
+                      imageBuilder: (context, imageProvider) => Container(
+                        width: 40.0,
+                        height: 40.0,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                              image: imageProvider, fit: BoxFit.cover),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: Column(
+                        children: <Widget>[
+                          Text(users.username,style: TextStyle(fontSize: 18),),
+                          SizedBox(height: 2,),
+                          Text(users.name,style: TextStyle(color: Colors.grey),),
+
+                        ],
+                      ),
+                    )
+                  ],
+                )
+              )
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -541,13 +699,14 @@ class _CallPageState extends State<CallPage> {
               child: Center(
                 child: Stack(
                   children: <Widget>[
-                    _viewRows(),// Video Widget
+                    //_viewRows(),// Video Widget
                     if(tryingToEnd==false)_endCall(),
                     if(tryingToEnd==false)_liveText(),
                     if(heart == true && tryingToEnd==false) heartPop(),
                     if(tryingToEnd==false) _bottomBar(), // send message
                     if(tryingToEnd==false)messageList(),
                     if(tryingToEnd==true)endLive(),// view message
+                    if(personBool==true) personList(),
                   ],
                 ),
               ),
@@ -618,15 +777,15 @@ class _CallPageState extends State<CallPage> {
                 padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
                 child: MaterialButton(
                   minWidth: 0,
-                  onPressed: _onToggleMute,
+                  onPressed: _addPerson,
                   child: Icon(
-                    muted ? Icons.mic_off : Icons.mic,
-                    color: muted ? Colors.white : Colors.blue[400],
+                    Icons.person_add,
+                    color: Colors.white,
                     size: 20.0,
                   ),
                   shape: CircleBorder(),
                   elevation: 2.0,
-                  color: muted ? Colors.blue[400] : Colors.white,
+                  color:Colors.blue[400] ,
                   padding: const EdgeInsets.all(12.0),
                 ),
               ),
@@ -652,6 +811,13 @@ class _CallPageState extends State<CallPage> {
       ),
     );
   }
+
+  void _addPerson() {
+    setState(() {
+      personBool = !personBool;
+    });
+    print('xperion'+userList.toString());
+}
 
   void _logout() async {
     try {
@@ -727,6 +893,11 @@ class _CallPageState extends State<CallPage> {
     AgoraRtmChannel channel = await _client.createChannel(name);
     channel.onMemberJoined = (AgoraRtmMember member) async {
       var img = await FireStoreClass.getImage(username: member.userId);
+      var nm = await FireStoreClass.getName(username: member.userId);
+      int i=10;
+      setState(() {
+        userList.add(new User(username: member.userId, name: nm, image: img));
+      });
       userMap.putIfAbsent(member.userId, () => img);
       var len;
       _channel.getMembers().then((value) {
@@ -740,6 +911,11 @@ class _CallPageState extends State<CallPage> {
     };
     channel.onMemberLeft = (AgoraRtmMember member) {
       var len;
+      setState(() {
+        userList.removeWhere((element) => element.username == member.userId);
+        print('xperion1'+userList.toString());
+      });
+
       _channel.getMembers().then((value) {
         len = value.length;
         setState(() {
