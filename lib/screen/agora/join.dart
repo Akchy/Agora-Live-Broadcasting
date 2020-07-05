@@ -38,6 +38,7 @@ class _JoinPageState extends State<JoinPage> {
   int userNo = 0;
   var userMap ;
   bool heart = false;
+  bool requested = false;
 
   bool _isLogin = true;
   bool _isInChannel = true;
@@ -90,7 +91,7 @@ class _JoinPageState extends State<JoinPage> {
   Future<void> _initAgoraRtcEngine() async {
     await AgoraRtcEngine.create(APP_ID);
     await AgoraRtcEngine.enableVideo();
-    await AgoraRtcEngine.muteLocalAudioStream(muted);
+    await AgoraRtcEngine.enableLocalAudio(!muted);
     await AgoraRtcEngine.enableLocalVideo(!muted);
 
 
@@ -477,6 +478,145 @@ class _JoinPageState extends State<JoinPage> {
     );
   }
 
+  Widget requestedWidget(){
+    return Container(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: MediaQuery.of(context).size.height,
+        color: Colors.black,
+        child: Wrap(
+          direction: Axis.horizontal,
+          alignment: WrapAlignment.center,
+          spacing: 0,
+          children: <Widget>[
+            Container(
+              margin: EdgeInsets.only(top: 20, ),
+              width: 130,
+              alignment: Alignment.center,
+              child: Stack(
+                children: <Widget>[
+                  Container(
+                    width: 130,
+                    alignment: Alignment.centerLeft,
+                    child: Stack(
+                      alignment: Alignment(0, 0),
+                      children: <Widget>[
+                        Container(
+                          width: 75,
+                          height: 75,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        CachedNetworkImage(
+                          imageUrl: widget.hostImage,
+                          imageBuilder: (context, imageProvider) => Container(
+                            width: 70.0,
+                            height: 70.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                  image: imageProvider, fit: BoxFit.cover),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: 130,
+                    alignment: Alignment.centerRight,
+                    child: Stack(
+                      alignment: Alignment(0, 0),
+                      children: <Widget>[
+                        Container(
+                          width: 75,
+                          height: 75,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        CachedNetworkImage(
+                          imageUrl: widget.userImage,
+                          imageBuilder: (context, imageProvider) => Container(
+                            width: 70.0,
+                            height: 70.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                  image: imageProvider, fit: BoxFit.cover),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                '${widget.channelName} Wants You To Be In This Live Video.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: 20,top: 0,bottom:20,right: 20,),
+              child: Text(
+                'Anyone can watch, and some of your followers may get notified.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[300],
+                ),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              width: double.maxFinite,
+              child: RaisedButton(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  child: Text('Go Live with ${widget.channelName}',style: TextStyle(color: Colors.white),),
+                ),
+                elevation: 2.0,
+                color: Colors.blue[400],
+                onPressed: (){
+                },
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              width: double.maxFinite,
+              child: RaisedButton(
+
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  child: Text('Decline',style: TextStyle(color: Colors.pink[300]),),
+                ),
+                elevation: 2.0,
+                color: Colors.transparent,
+                onPressed: (){
+                  setState(() {
+                    requested=false;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -494,6 +634,8 @@ class _JoinPageState extends State<JoinPage> {
                     _liveText(),
                     if(completed==false)_messageList(),
                     if(heart == true && completed==false) heartPop(),
+                    if(requested == true) requestedWidget(),
+
                     //_ending()
                   ],
                 ),
@@ -704,12 +846,26 @@ class _JoinPageState extends State<JoinPage> {
     if(type=='message' && info.contains('m1x2y3z4p5t6l7k8')){
       popUp();
     }else {
+      Message m;
       var image = userMap[user];
-      Message m = new Message(
-          message: info, type: type, user: user, image: image);
-      setState(() {
-        _infoStrings.insert(0, m);
-      });
+      if(info.contains('d1a2v3i4s5h6')){
+        var mess = info.split(' ');
+        if(mess[1]==widget.username){
+          /*m = new Message(
+              message: 'working', type: type, user: user, image: image);*/
+          setState(() {
+            //_infoStrings.insert(0, m);
+            requested = true;
+          });
+        }
+      }
+      else {
+        m = new Message(
+            message: info, type: type, user: user, image: image);
+        setState(() {
+          _infoStrings.insert(0, m);
+        });
+      }
     }
   }
 }

@@ -46,6 +46,7 @@ class _CallPageState extends State<CallPage>{
   AgoraRtmClient _client;
   AgoraRtmChannel _channel;
   bool heart = false;
+  bool anyPerson = false;
 
   //Love animation
   final _random = math.Random();
@@ -90,6 +91,8 @@ class _CallPageState extends State<CallPage>{
   Future<void> _initAgoraRtcEngine() async {
     await AgoraRtcEngine.create(APP_ID);
     await AgoraRtcEngine.enableVideo();
+    await AgoraRtcEngine.enableLocalAudio(false);
+
   }
 
   /// Add agora event handlers
@@ -536,14 +539,13 @@ class _CallPageState extends State<CallPage>{
   }
 
   Widget personList(){
-
     return Container(
       alignment: Alignment.bottomRight,
       child: Container(
         height: 2*MediaQuery.of(context).size.height/3,
         width: MediaQuery.of(context).size.height,
         decoration: new BoxDecoration(
-          color: Colors.white,
+          color: Colors.grey[850],
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(25),
             topRight: Radius.circular(25)
@@ -560,14 +562,14 @@ class _CallPageState extends State<CallPage>{
                     padding: EdgeInsets.symmetric(vertical: 12),
                     width: MediaQuery.of(context).size.width,
                     alignment: Alignment.center,
-                    child: Text('Go Live with',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                    child: Text('Go Live with',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.white),),
                   ),
                   SizedBox(height: 10,),
-                  Divider(color: Colors.grey,thickness: 0.5,height: 0,),
+                  Divider(color: Colors.grey[800],thickness: 0.5,height: 0,),
                   Container(
                     padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
                     width: double.infinity,
-                    color: Colors.grey[50],
+                    color: Colors.grey[900],
                     child: Text(
                       'When you go live with someone, anyone who can watch their live videos will be able to watch it too.',
                       textAlign: TextAlign.center,
@@ -577,7 +579,7 @@ class _CallPageState extends State<CallPage>{
                       ),
                     ),
                   ),
-                  Container(
+                  anyPerson==true?Container(
                       padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
                       width: double.maxFinite,
                       child: Text(
@@ -588,6 +590,10 @@ class _CallPageState extends State<CallPage>{
                         ),
                         textAlign: TextAlign.start,
                       )
+                  ):
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text('No Viewers',style: TextStyle(color: Colors.grey[400]),),
                   ),
                   Expanded(
                     child: ListView(
@@ -601,25 +607,24 @@ class _CallPageState extends State<CallPage>{
             ),
             Align(
               alignment: Alignment.bottomCenter,
-              child: Container(
-                color: Colors.white,
-                alignment: Alignment.bottomCenter,
-                height: 50,
-                child: Stack(
-                  children: <Widget>[
-                    Divider(height: 0,color: Colors.grey,),
-                    GestureDetector(
-                      onTap: (){
-                        setState(() {
-                          personBool= !personBool;
-                        });
-                      },
-                      child: Container(
+              child: GestureDetector(
+                onTap: (){
+                  setState(() {
+                    personBool= !personBool;
+                  });
+                },
+                child: Container(
+                  color: Colors.grey[850],
+                  alignment: Alignment.bottomCenter,
+                  height: 50,
+                  child: Stack(
+                    children: <Widget>[
+                      Container(
                         height: double.maxFinite,
                         alignment: Alignment.center ,
-                        child: Text('Cancel',style: TextStyle(fontWeight: FontWeight.bold),)),
-                    ),
-                  ],
+                        child: Text('Cancel',style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),)),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -639,22 +644,16 @@ class _CallPageState extends State<CallPage>{
 
   Widget getStory(User users) {
     return Container(
-      padding: EdgeInsets.only(left: 15),
       margin: EdgeInsets.symmetric(vertical: 7.5),
       child: Column(
         children: <Widget>[
-          Container(
-              child: GestureDetector(
-                onTap: (){
-                  /*if(users.me==true){
-                    // Host function
-                    onCreate(username: users.username, image: users.image);
-                  }
-                  else{
-                    // Join function
-                    onJoin(channelName: users.username,channelId: users.channelId,username: username, hostImage: users.image,userImage: image);
-                  }*/
-                },
+          GestureDetector(
+            onTap: ()async{
+              await _channel.sendMessage(AgoraRtmMessage.fromText('d1a2v3i4s5h6 ${users.username}'));
+            },
+            child: Container(
+              padding: EdgeInsets.only(left: 15),
+                color: Colors.grey[850 ],
                 child: Row(
                   children: <Widget>[
                     CachedNetworkImage(
@@ -673,16 +672,15 @@ class _CallPageState extends State<CallPage>{
                       padding: const EdgeInsets.only(left: 10),
                       child: Column(
                         children: <Widget>[
-                          Text(users.username,style: TextStyle(fontSize: 18),),
+                          Text(users.username,style: TextStyle(fontSize: 18,color: Colors.white),),
                           SizedBox(height: 2,),
                           Text(users.name,style: TextStyle(color: Colors.grey),),
-
                         ],
                       ),
                     )
                   ],
                 )
-              )
+            ),
           ),
         ],
       ),
@@ -699,7 +697,7 @@ class _CallPageState extends State<CallPage>{
               child: Center(
                 child: Stack(
                   children: <Widget>[
-                    //_viewRows(),// Video Widget
+                    _viewRows(),// Video Widget
                     if(tryingToEnd==false)_endCall(),
                     if(tryingToEnd==false)_liveText(),
                     if(heart == true && tryingToEnd==false) heartPop(),
@@ -816,7 +814,6 @@ class _CallPageState extends State<CallPage>{
     setState(() {
       personBool = !personBool;
     });
-    print('xperion'+userList.toString());
 }
 
   void _logout() async {
@@ -894,9 +891,10 @@ class _CallPageState extends State<CallPage>{
     channel.onMemberJoined = (AgoraRtmMember member) async {
       var img = await FireStoreClass.getImage(username: member.userId);
       var nm = await FireStoreClass.getName(username: member.userId);
-      int i=10;
       setState(() {
         userList.add(new User(username: member.userId, name: nm, image: img));
+        if(userList.length>0)
+          anyPerson =true;
       });
       userMap.putIfAbsent(member.userId, () => img);
       var len;
@@ -913,7 +911,8 @@ class _CallPageState extends State<CallPage>{
       var len;
       setState(() {
         userList.removeWhere((element) => element.username == member.userId);
-        print('xperion1'+userList.toString());
+        if(userList.length==0)
+          anyPerson = false;
       });
 
       _channel.getMembers().then((value) {
@@ -922,7 +921,6 @@ class _CallPageState extends State<CallPage>{
           userNo= len-1 ;
         });
       });
-
     };
     channel.onMessageReceived =
         (AgoraRtmMessage message, AgoraRtmMember member) {
