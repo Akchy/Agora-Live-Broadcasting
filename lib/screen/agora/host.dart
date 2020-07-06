@@ -995,6 +995,7 @@ class _CallPageState extends State<CallPage>{
         accepted=true;
         personBool=false;
         personBool=false;
+        waiting= false;
       });
     }
     else if(type=='message' && info.contains('E1m2I3l4i5E6')){

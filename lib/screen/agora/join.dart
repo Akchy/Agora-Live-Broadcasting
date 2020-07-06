@@ -93,7 +93,8 @@ class _JoinPageState extends State<JoinPage> {
   Future<void> _initAgoraRtcEngine() async {
     await AgoraRtcEngine.create(APP_ID);
     await AgoraRtcEngine.enableVideo();
-    await AgoraRtcEngine.enableLocalAudio(!muted);
+    //await AgoraRtcEngine.muteLocalAudioStream(true);
+    await AgoraRtcEngine.enableLocalAudio(false);
     await AgoraRtcEngine.enableLocalVideo(!muted);
 
 
@@ -617,8 +618,8 @@ class _JoinPageState extends State<JoinPage> {
                 color: Colors.blue[400],
                 onPressed: ()async{
 
-                  await AgoraRtcEngine.enableLocalVideo(muted);
-                  await AgoraRtcEngine.enableLocalAudio(muted);
+                  await AgoraRtcEngine.enableLocalVideo(true);
+                  await AgoraRtcEngine.enableLocalAudio(true);
                   await _channel.sendMessage(AgoraRtmMessage.fromText('k1r2i3s4t5i6e7 confirming'));
                   setState((){
                     accepted = true;
