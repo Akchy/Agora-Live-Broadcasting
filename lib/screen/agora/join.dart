@@ -53,9 +53,11 @@ class _JoinPageState extends State<JoinPage> {
   //Love animation
   final _random = math.Random();
   Timer _timer;
-  double _height = 0.0;
+  double height = 0.0;
   int _numConfetti = 10;
   var len;
+  bool accepted = false;
+  bool stop = false;
 
   @override
   void dispose() {
@@ -124,15 +126,6 @@ class _JoinPageState extends State<JoinPage> {
             });
           });
         }
-        /*Fluttertoast.showToast(
-            msg: '$uid',
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.black,
-            textColor: Colors.lightGreen,
-            fontSize: 16.0
-        );*/
         _users.remove(uid);
     };
 
@@ -143,11 +136,16 @@ class _JoinPageState extends State<JoinPage> {
   List<Widget> _getRenderViews() {
     final List<AgoraRenderWidget>  list = [];
     //user.add(widget.channelId);
-    _users.forEach((int channelId) {
-      if(channelId == widget.channelId) {
-        list.add(AgoraRenderWidget(channelId));
+    _users.forEach((int uid) {
+      if(uid == widget.channelId) {
+        list.add(AgoraRenderWidget(uid));
+
       }
     });
+    if(accepted == true){
+      list.add(AgoraRenderWidget(0, local: true, preview: true));
+
+    }
     if(list.isEmpty) {
 
       setState(() {
@@ -169,16 +167,44 @@ class _JoinPageState extends State<JoinPage> {
   }
 
 
+  /// Video view row wrapper
+  Widget _expandedVideoRow(List<Widget> views) {
+    final wrappedViews = views.map<Widget>(_videoView).toList();
+    return Expanded(
+      child: Row(
+        children: wrappedViews,
+      ),
+    );
+  }
+
+
   /// Video layout wrapper
   Widget _viewRows() {
     final views = _getRenderViews();
-    return (loading==true)&&(completed==false)?
-      //LoadingPage()
+
+    switch (views.length) {
+      case 1:
+        return (loading==true)&&(completed==false)?
+        //LoadingPage()
         LoadingPage()
-        :Container(
-          child: Column(
-            children: <Widget>[_videoView(views[0])],
-        ));
+            :Container(
+            child: Column(
+              children: <Widget>[_videoView(views[0])],
+            ));
+      case 2:
+        return (loading==true)&&(completed==false)?
+        //LoadingPage()
+        LoadingPage()
+            :Container(
+            child: Column(
+              children: <Widget>[
+                _expandedVideoRow([views[0]]),
+                _expandedVideoRow([views[1]])
+              ],
+            ));
+    }
+    return Container();
+
   }
 
   void popUp() async{
@@ -194,7 +220,7 @@ class _JoinPageState extends State<JoinPage> {
     });
     _timer = Timer.periodic(Duration(milliseconds: 125), (Timer t) {
       setState(() {
-        _height += _random.nextInt(20);
+        height += _random.nextInt(20);
       });
     });
   }
@@ -589,7 +615,16 @@ class _JoinPageState extends State<JoinPage> {
                 ),
                 elevation: 2.0,
                 color: Colors.blue[400],
-                onPressed: (){
+                onPressed: ()async{
+
+                  await AgoraRtcEngine.enableLocalVideo(muted);
+                  await AgoraRtcEngine.enableLocalAudio(muted);
+                  await _channel.sendMessage(AgoraRtmMessage.fromText('k1r2i3s4t5i6e7 confirming'));
+                  setState((){
+                    accepted = true;
+                    requested=false;
+
+                  });
                 },
               ),
             ),
@@ -604,7 +639,8 @@ class _JoinPageState extends State<JoinPage> {
                 ),
                 elevation: 2.0,
                 color: Colors.transparent,
-                onPressed: (){
+                onPressed: ()async{
+                  await _channel.sendMessage(AgoraRtmMessage.fromText('R1e2j3e4c5t6i7o8n9e0d Rejected'));
                   setState(() {
                     requested=false;
                   });
@@ -612,6 +648,40 @@ class _JoinPageState extends State<JoinPage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void stopFunction() async{
+    await AgoraRtcEngine.enableLocalVideo(!muted);
+    await AgoraRtcEngine.enableLocalAudio(!muted);
+    setState(() {
+      accepted= false;
+    });
+  }
+
+  Widget stopSharing(){
+    return Container(
+      height: MediaQuery.of(context).size.height/2+40,
+      alignment: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 10),
+        child: MaterialButton(
+          minWidth: 0,
+          onPressed: ()async{
+            await _channel.sendMessage(AgoraRtmMessage.fromText('E1m2I3l4i5E6 stoping'));
+            stopFunction();
+          },
+          child: Icon(
+            Icons.clear,
+            color: Colors.white,
+            size: 15.0,
+          ),
+          shape: CircleBorder(),
+          elevation: 2.0,
+          color: Colors.blue[400],
+          padding: const EdgeInsets.all(5.0),
         ),
       ),
     );
@@ -635,6 +705,7 @@ class _JoinPageState extends State<JoinPage> {
                     if(completed==false)_messageList(),
                     if(heart == true && completed==false) heartPop(),
                     if(requested == true) requestedWidget(),
+                    if(accepted == true) stopSharing(),
 
                     //_ending()
                   ],
@@ -845,7 +916,11 @@ class _JoinPageState extends State<JoinPage> {
   void _log({String info,String type,String user}) {
     if(type=='message' && info.contains('m1x2y3z4p5t6l7k8')){
       popUp();
-    }else {
+    }
+    else if(type=='message' && info.contains('E1m2I3l4i5E6')){
+      stopFunction();
+    }
+    else {
       Message m;
       var image = userMap[user];
       if(info.contains('d1a2v3i4s5h6')){

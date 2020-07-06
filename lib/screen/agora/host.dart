@@ -7,6 +7,7 @@ import 'package:agorartm/models/user.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../utils/settings.dart';
 import 'package:wakelock/wakelock.dart';
@@ -38,6 +39,7 @@ class _CallPageState extends State<CallPage>{
   var userMap ;
   var tryingToEnd = false;
   bool personBool = false;
+  bool accepted =false;
 
   final _channelMessageController = TextEditingController();
 
@@ -51,8 +53,10 @@ class _CallPageState extends State<CallPage>{
   //Love animation
   final _random = math.Random();
   Timer _timer;
-  double _height = 0.0;
+  double height = 0.0;
   int _numConfetti = 5;
+  int guestID=-1;
+  bool waiting=false;
 
   @override
   void dispose() {
@@ -91,7 +95,7 @@ class _CallPageState extends State<CallPage>{
   Future<void> _initAgoraRtcEngine() async {
     await AgoraRtcEngine.create(APP_ID);
     await AgoraRtcEngine.enableVideo();
-    await AgoraRtcEngine.enableLocalAudio(false);
+    await AgoraRtcEngine.enableLocalAudio(true);
 
   }
 
@@ -127,6 +131,11 @@ class _CallPageState extends State<CallPage>{
     };
 
     AgoraRtcEngine.onUserOffline = (int uid, int reason) {
+      if(uid == guestID){
+        setState(() {
+          accepted=false;
+        });
+      }
       setState(() {
         _users.remove(uid);
       });
@@ -138,7 +147,14 @@ class _CallPageState extends State<CallPage>{
     final list = [
       AgoraRenderWidget(0, local: true, preview: true),
     ];
-    _users.forEach((int uid) => list.add(AgoraRenderWidget(uid)));
+    if(accepted==true) {
+      _users.forEach((int uid) {
+        if(uid!=0){
+          guestID = uid;
+        }
+        list.add(AgoraRenderWidget(uid));
+      });
+    }
     return list;
   }
 
@@ -148,7 +164,7 @@ class _CallPageState extends State<CallPage>{
   }
 
 
-/*  /// Video view row wrapper
+  /// Video view row wrapper
   Widget _expandedVideoRow(List<Widget> views) {
     final wrappedViews = views.map<Widget>(_videoView).toList();
     return Expanded(
@@ -156,15 +172,35 @@ class _CallPageState extends State<CallPage>{
         children: wrappedViews,
       ),
     );
-  }*/
+  }
+
 
   /// Video layout wrapper
   Widget _viewRows() {
     final views = _getRenderViews();
-    return Container(
+
+    switch (views.length) {
+      case 1:
+        return Container(
+            child: Column(
+              children: <Widget>[_videoView(views[0])],
+            ));
+      case 2:
+        return Container(
+            child: Column(
+              children: <Widget>[
+                _expandedVideoRow([views[0]]),
+                _expandedVideoRow([views[1]])
+              ],
+            ));
+    }
+    return Container();
+
+
+    /*    return Container(
         child: Column(
           children: <Widget>[_videoView(views[0])],
-        ));
+        ));*/
   }
 
 
@@ -175,7 +211,7 @@ class _CallPageState extends State<CallPage>{
 
     _timer = Timer.periodic(Duration(milliseconds: 125), (Timer t) {
       setState(() {
-        _height += _random.nextInt(20);
+        height += _random.nextInt(20);
       });
     });
 
@@ -333,43 +369,6 @@ class _CallPageState extends State<CallPage>{
     );
   }
 
-  bool pop = false;
-  Future<void> _showDialog() async {
-    // flutter defined function
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // return object of type Dialog
-        return AlertDialog(
-          title: Text('Alert Dialog title'),
-          content: Text('Alert Dialog body'),
-          actions: <Widget>[
-            // usually buttons at the bottom of the dialog
-            FlatButton(
-              child: Text("Don't"),
-              onPressed: () {
-                pop=false;
-                Navigator.of(context, rootNavigator: true).pop('dialog');
-              },
-            ),
-            FlatButton(
-              child: Text('Close'),
-              onPressed: () async {
-                await Wakelock.disable();
-                Navigator.of(context).pop();
-                pop = true;
-              },
-            ),
-
-
-          ],
-        );
-      },
-    );
-  }
-
-
-
   void _onSwitchCamera() {
     AgoraRtcEngine.switchCamera();
   }
@@ -404,6 +403,9 @@ class _CallPageState extends State<CallPage>{
                   });
                 }
                 setState(() {
+                  if(waiting==true){
+                    waiting=false;
+                  }
                   tryingToEnd=true;
                 });
               },
@@ -649,6 +651,9 @@ class _CallPageState extends State<CallPage>{
         children: <Widget>[
           GestureDetector(
             onTap: ()async{
+              setState(() {
+                waiting=true;
+              });
               await _channel.sendMessage(AgoraRtmMessage.fromText('d1a2v3i4s5h6 ${users.username}'));
             },
             child: Container(
@@ -687,6 +692,49 @@ class _CallPageState extends State<CallPage>{
     );
   }
 
+  Widget stopSharing(){
+    return Container(
+      height: MediaQuery.of(context).size.height/2+40,
+      alignment: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 10),
+        child: MaterialButton(
+          minWidth: 0,
+          onPressed: ()async{
+            stopFunction();
+            await _channel.sendMessage(AgoraRtmMessage.fromText('E1m2I3l4i5E6 stoping'));
+          },
+          child: Icon(
+            Icons.clear,
+            color: Colors.white,
+            size: 15.0,
+          ),
+          shape: CircleBorder(),
+          elevation: 2.0,
+          color: Colors.blue[400],
+          padding: const EdgeInsets.all(5.0),
+        ),
+      ),
+    );
+  }
+
+  Widget guestWaiting(){
+    return Container(
+      alignment: Alignment.bottomRight,
+      child: Container(
+        height: 100,
+        width: double.maxFinite,
+        alignment: Alignment.center,
+        color: Colors.black,
+        child: Wrap(
+          children: <Widget>[
+            Text('Waiting for the user to accept...',style: TextStyle(color: Colors.white,fontSize: 20),)
+          ],
+        )
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -704,7 +752,9 @@ class _CallPageState extends State<CallPage>{
                     if(tryingToEnd==false) _bottomBar(), // send message
                     if(tryingToEnd==false)messageList(),
                     if(tryingToEnd==true)endLive(),// view message
-                    if(personBool==true) personList(),
+                    if(personBool==true && waiting==false) personList(),
+                    if(accepted == true) stopSharing(),
+                    if(waiting == true) guestWaiting(),
                   ],
                 ),
               ),
@@ -771,7 +821,7 @@ class _CallPageState extends State<CallPage>{
                   padding: const EdgeInsets.all(12.0),
                 ),
               ),
-              Padding(
+              if(accepted==false)Padding(
                 padding: const EdgeInsets.fromLTRB(4.0, 0, 0, 0),
                 child: MaterialButton(
                   minWidth: 0,
@@ -814,7 +864,14 @@ class _CallPageState extends State<CallPage>{
     setState(() {
       personBool = !personBool;
     });
-}
+  }
+
+  void stopFunction(){
+    setState(() {
+      accepted= false;
+    });
+  }
+
 
   void _logout() async {
     try {
@@ -932,7 +989,33 @@ class _CallPageState extends State<CallPage>{
   void _log({String info,String type,String user}) {
     if(type=='message' && info.contains('m1x2y3z4p5t6l7k8')){
       popUp();
-    }else {
+    }
+    else if(type=='message' && info.contains('k1r2i3s4t5i6e7')){
+      setState(() {
+        accepted=true;
+        personBool=false;
+        personBool=false;
+      });
+    }
+    else if(type=='message' && info.contains('E1m2I3l4i5E6')){
+      stopFunction();
+    }
+    else if(type=='message' && info.contains('R1e2j3e4c5t6i7o8n9e0d')){
+      setState(() {
+        waiting=false;
+      });
+      FlutterToast.showToast(
+          msg: "Guest Declined",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.TOP,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.black,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+
+    }
+    else {
       var image = userMap[user];
       Message m = new Message(
           message: info, type: type, user: user, image: image);
