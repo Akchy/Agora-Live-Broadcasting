@@ -29,7 +29,7 @@ dependencies:
   agora_rtc_engine: 1.0.5
   agora_rtm: 0.9.11
   sliding_up_panel: ^1.0.2
-  fluttertoast: ^5.0.1
+  #fluttertoast: ^5.0.1
   google_sign_in: ^4.2.0
   firebase_auth_web: ^0.1.2
   firebase_auth: ^0.14.0+5

@@ -11,7 +11,7 @@ class SplashScreen extends StatefulWidget{
 
 class _SplashScreenState extends State<SplashScreen> {
 
-  var image = Image.asset('assets/images/agoraLogo.png');
+  var image = Image.asset('assets/images/agora_logo.png');
   @override
   void initState() {
     super.initState();
@@ -52,8 +52,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
-                    height: 80,
-                    width: 80,
+                    padding: EdgeInsets.symmetric(horizontal:35),
+                    width: double.maxFinite,
                     child: Center(
                       child: image,
                     ),

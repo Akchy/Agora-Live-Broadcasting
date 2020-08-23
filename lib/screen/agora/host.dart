@@ -7,7 +7,7 @@ import 'package:agorartm/models/user.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+//import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../utils/settings.dart';
 import 'package:wakelock/wakelock.dart';
@@ -1005,7 +1005,7 @@ class _CallPageState extends State<CallPage>{
       setState(() {
         waiting=false;
       });
-      FlutterToast.showToast(
+      /*FlutterToast.showToast(
           msg: "Guest Declined",
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.TOP,
@@ -1013,7 +1013,7 @@ class _CallPageState extends State<CallPage>{
           backgroundColor: Colors.black,
           textColor: Colors.white,
           fontSize: 16.0
-      );
+      );*/
 
     }
     else {
