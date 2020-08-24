@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
           child:  Icon(FontAwesomeIcons.camera,color: Colors.white,)
         ),
         titleSpacing: -10,
-        title: Text('Agoragram', style: TextStyle(fontFamily: 'Billabong',fontSize: 28),),
+        title: Text('ShareLife', style: TextStyle(fontFamily: 'Billabong',fontSize: 28),),
         actions: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 12.0),

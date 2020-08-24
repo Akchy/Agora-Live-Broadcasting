@@ -11,7 +11,7 @@ class SplashScreen extends StatefulWidget{
 
 class _SplashScreenState extends State<SplashScreen> {
 
-  var image = Image.asset('assets/images/agora_logo.png');
+  var image = Image.asset('assets/images/lightLogo.png');
   @override
   void initState() {
     super.initState();
@@ -37,7 +37,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    precacheImage(AssetImage("assets/images/agoraLogo.png"), context);
     return Scaffold(
       body: Container(
         height: MediaQuery.of(context).size.height,

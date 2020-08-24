@@ -26,12 +26,11 @@ dependencies:
 
   flutter_launcher_icons: 0.7.5
   shared_preferences: 0.5.7
-  agora_rtc_engine: 1.0.5
-  agora_rtm: 0.9.11
+  agora_rtc_engine: ^1.0.13
+  agora_rtm: ^0.9.11
   sliding_up_panel: ^1.0.2
   #fluttertoast: ^5.0.1
   google_sign_in: ^4.2.0
-  firebase_auth_web: ^0.1.2
   firebase_auth: ^0.14.0+5
   wakelock: ^0.1.4+1
   cloud_firestore: ^0.12.9+5
@@ -91,6 +90,6 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
 flutter_icons:
-  image_path: "assets/images/agoraLogoDark.png"
+  image_path: "assets/images/darkLogo.png"
   android: true
   ios: true
